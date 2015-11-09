@@ -23,6 +23,9 @@
 #include <cstring>   // For std::memset
 #include <iostream>
 #include <sstream>
+#include <fstream>
+#include <iostream>
+
 
 #include "evaluate.h"
 #include "misc.h"
@@ -34,6 +37,16 @@
 #include "tt.h"
 #include "uci.h"
 #include "syzygy/tbprobe.h"
+
+static bool firstLog = true;
+#define DBOUT( s )            \
+{{                             \
+   std::ofstream outFile("logfile_stockfish.txt", firstLog ?std::ios_base::trunc : std::ios_base::app );\
+firstLog=false;	\
+	outFile << s;                   \
+   outFile << std::endl << std::flush;  \
+	outFile.close();	\
+}}
 
 namespace Search {
 
@@ -201,15 +214,16 @@ uint64_t Search::perft(Position& pos, Depth depth) {
   CheckInfo ci(pos);
   const bool leaf = (depth == 2 * ONE_PLY);
 
-  for (const auto& m : MoveList<LEGAL>(pos))
+  MoveList<LEGAL> ml(pos);
+  for (const auto& m : ml)
   {
-      if (Root && depth <= ONE_PLY)
+	  if (Root && depth <= ONE_PLY)
           cnt = 1, nodes++;
       else
       {
           pos.do_move(m, st, pos.gives_check(m, ci));
-          cnt = leaf ? MoveList<LEGAL>(pos).size() : perft<false>(pos, depth - ONE_PLY);
-          nodes += cnt;
+		  cnt = leaf ? MoveList<LEGAL>(pos).size() : perft<false>(pos, depth - ONE_PLY);
+		  nodes += cnt;
           pos.undo_move(m);
       }
       if (Root)
@@ -514,7 +528,7 @@ namespace {
 
   template <NodeType NT, bool SpNode>
   Value search(Position& pos, Stack* ss, Value alpha, Value beta, Depth depth, bool cutNode) {
-
+	  DBOUT("search(NT=" << NT << ", SpNode=" << SpNode << ", pos=" << pos.key() << ", ss, alpha=" << alpha << ", beta=" << beta << ", depth=" << depth << ", cutNode=" << cutNode << ")")
     const bool RootNode = NT == Root;
     const bool PvNode   = NT == PV || NT == Root;
 
@@ -534,11 +548,16 @@ namespace {
     bool captureOrPromotion, doFullDepthSearch;
     int moveCount, quietCount;
 
+	if (pos.key() == 2444131870822508735 && beta == -199)
+	{
+		int i = 0;
+	}
+
     // Step 1. Initialize node
     Thread* thisThread = pos.this_thread();
     inCheck = pos.checkers();
 
-    if (SpNode)
+	if (SpNode)
     {
         splitPoint = ss->splitPoint;
         bestMove   = splitPoint->bestMove;
@@ -800,10 +819,15 @@ moves_loop: // When in check and at SpNode search starts from here
                            && (tte->bound() & BOUND_LOWER)
                            &&  tte->depth() >= depth - 3 * ONE_PLY;
 
+	if (pos.key() == 2444131870822508735 && beta == -199)
+	{
+		int i = 0;
+	}
     // Step 11. Loop through moves
     // Loop through all pseudo-legal moves until no moves remain or a beta cutoff occurs
     while ((move = mp.next_move<SpNode>()) != MOVE_NONE)
     {
+		DBOUT("mp.next_move = " << move);
       assert(is_ok(move));
 
       if (move == excludedMove)
@@ -999,7 +1023,7 @@ moves_loop: // When in check and at SpNode search starts from here
           (ss+1)->pv = pv;
           (ss+1)->pv[0] = MOVE_NONE;
 
-          value = newDepth <   ONE_PLY ?
+	          value = newDepth <   ONE_PLY ?
                             givesCheck ? -qsearch<PV,  true>(pos, ss+1, -beta, -alpha, DEPTH_ZERO)
                                        : -qsearch<PV, false>(pos, ss+1, -beta, -alpha, DEPTH_ZERO)
                                        : - search<PV, false>(pos, ss+1, -beta, -alpha, newDepth, false);
@@ -1162,7 +1186,7 @@ moves_loop: // When in check and at SpNode search starts from here
 
   template <NodeType NT, bool InCheck>
   Value qsearch(Position& pos, Stack* ss, Value alpha, Value beta, Depth depth) {
-
+	  DBOUT("qsearch(NT=" << NT << ", InCheck=" << InCheck << ", pos=" << pos.key() << ", ss, alpha=" << alpha << ", beta=" << beta << ", depth=" << depth << ")")
     const bool PvNode = NT == PV;
 
     assert(NT == PV || NT == NonPV);
@@ -1180,6 +1204,10 @@ moves_loop: // When in check and at SpNode search starts from here
     bool ttHit, givesCheck, evasionPrunable;
     Depth ttDepth;
 
+	if (pos.key() == 230724424493976527)
+	{
+		int i = 0;
+	}
     if (PvNode)
     {
         oldAlpha = alpha; // To flag BOUND_EXACT when eval above alpha and no available moves
@@ -1371,7 +1399,7 @@ moves_loop: // When in check and at SpNode search starts from here
   // The function is called before storing a value in the transposition table.
 
   Value value_to_tt(Value v, int ply) {
-
+	  DBOUT("value_to_tt(v=" << v << ", ply=" << ply << ")");
     assert(v != VALUE_NONE);
 
     return  v >= VALUE_MATE_IN_MAX_PLY  ? v + ply

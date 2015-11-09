@@ -62,7 +62,7 @@ struct MoveList {
     return false;
   }
 
-private:
+//private:
   ExtMove moveList[MAX_MOVES], *last;
 };
 
