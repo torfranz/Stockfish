@@ -39,6 +39,8 @@
 #include "syzygy/tbprobe.h"
 
 static bool firstLog = true;
+
+#ifdef DEBUG
 #define DBOUT( s )            \
 {{                             \
    std::ofstream outFile("logfile_stockfish.txt", firstLog ?std::ios_base::trunc : std::ios_base::app );\
@@ -47,6 +49,7 @@ firstLog=false;	\
    outFile << std::endl << std::flush;  \
 	outFile.close();	\
 }}
+#endif
 
 namespace Search {
 
@@ -528,8 +531,10 @@ namespace {
 
   template <NodeType NT, bool SpNode>
   Value search(Position& pos, Stack* ss, Value alpha, Value beta, Depth depth, bool cutNode) {
+#ifdef DEBUG
 	  DBOUT("search(NT=" << NT << ", SpNode=" << SpNode << ", pos=" << pos.key() << ", ss, alpha=" << alpha << ", beta=" << beta << ", depth=" << depth << ", cutNode=" << cutNode << ")")
-    const bool RootNode = NT == Root;
+#endif
+	const bool RootNode = NT == Root;
     const bool PvNode   = NT == PV || NT == Root;
 
     assert(-VALUE_INFINITE <= alpha && alpha < beta && beta <= VALUE_INFINITE);
@@ -827,7 +832,9 @@ moves_loop: // When in check and at SpNode search starts from here
     // Loop through all pseudo-legal moves until no moves remain or a beta cutoff occurs
     while ((move = mp.next_move<SpNode>()) != MOVE_NONE)
     {
+#ifdef DEBUG
 		DBOUT("mp.next_move = " << move);
+#endif
       assert(is_ok(move));
 
       if (move == excludedMove)
@@ -1186,8 +1193,10 @@ moves_loop: // When in check and at SpNode search starts from here
 
   template <NodeType NT, bool InCheck>
   Value qsearch(Position& pos, Stack* ss, Value alpha, Value beta, Depth depth) {
+#ifdef DEBUG
 	  DBOUT("qsearch(NT=" << NT << ", InCheck=" << InCheck << ", pos=" << pos.key() << ", ss, alpha=" << alpha << ", beta=" << beta << ", depth=" << depth << ")")
-    const bool PvNode = NT == PV;
+#endif
+	const bool PvNode = NT == PV;
 
     assert(NT == PV || NT == NonPV);
     assert(InCheck == !!pos.checkers());
@@ -1399,7 +1408,9 @@ moves_loop: // When in check and at SpNode search starts from here
   // The function is called before storing a value in the transposition table.
 
   Value value_to_tt(Value v, int ply) {
+#ifdef DEBUG
 	  DBOUT("value_to_tt(v=" << v << ", ply=" << ply << ")");
+#endif
     assert(v != VALUE_NONE);
 
     return  v >= VALUE_MATE_IN_MAX_PLY  ? v + ply
