@@ -40,7 +40,7 @@
 
 static bool firstLog = true;
 
-#ifdef DEBUG
+#ifdef _DEBUG
 #define DBOUT( s )            \
 {{                             \
    std::ofstream outFile("logfile_stockfish.txt", firstLog ?std::ios_base::trunc : std::ios_base::app );\
@@ -531,7 +531,7 @@ namespace {
 
   template <NodeType NT, bool SpNode>
   Value search(Position& pos, Stack* ss, Value alpha, Value beta, Depth depth, bool cutNode) {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  DBOUT("search(NT=" << NT << ", SpNode=" << SpNode << ", pos=" << pos.key() << ", ss, alpha=" << alpha << ", beta=" << beta << ", depth=" << depth << ", cutNode=" << cutNode << ")")
 #endif
 	const bool RootNode = NT == Root;
@@ -832,7 +832,7 @@ moves_loop: // When in check and at SpNode search starts from here
     // Loop through all pseudo-legal moves until no moves remain or a beta cutoff occurs
     while ((move = mp.next_move<SpNode>()) != MOVE_NONE)
     {
-#ifdef DEBUG
+#ifdef _DEBUG
 		DBOUT("mp.next_move = " << move);
 #endif
       assert(is_ok(move));
@@ -1193,7 +1193,7 @@ moves_loop: // When in check and at SpNode search starts from here
 
   template <NodeType NT, bool InCheck>
   Value qsearch(Position& pos, Stack* ss, Value alpha, Value beta, Depth depth) {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  DBOUT("qsearch(NT=" << NT << ", InCheck=" << InCheck << ", pos=" << pos.key() << ", ss, alpha=" << alpha << ", beta=" << beta << ", depth=" << depth << ")")
 #endif
 	const bool PvNode = NT == PV;
@@ -1408,7 +1408,7 @@ moves_loop: // When in check and at SpNode search starts from here
   // The function is called before storing a value in the transposition table.
 
   Value value_to_tt(Value v, int ply) {
-#ifdef DEBUG
+#ifdef _DEBUG
 	  DBOUT("value_to_tt(v=" << v << ", ply=" << ply << ")");
 #endif
     assert(v != VALUE_NONE);
