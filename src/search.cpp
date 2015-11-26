@@ -1,4 +1,5 @@
 /*
+
   Stockfish, a UCI chess playing engine derived from Glaurung 2.1
   Copyright (C) 2004-2008 Tord Romstad (Glaurung author)
   Copyright (C) 2008-2015 Marco Costalba, Joona Kiiski, Tord Romstad
@@ -38,17 +39,27 @@
 #include "uci.h"
 #include "syzygy/tbprobe.h"
 
-static bool firstLog = true;
-
 #ifdef _DEBUG
+static std::vector<std::string> logContent;
 #define DBOUT( s )            \
 {{                             \
-   std::ofstream outFile("logfile_stockfish.txt", firstLog ?std::ios_base::trunc : std::ios_base::app );\
-firstLog=false;	\
-	outFile << s;                   \
-   outFile << std::endl << std::flush;  \
-	outFile.close();	\
+	std::stringstream ss;\
+	ss << s;\
+   logContent.push_back(ss.str()); \
 }}
+
+namespace Search {
+	void WriteLog() {
+		std::ofstream outFile("logfile_stockfish.txt", std::ios_base::trunc);
+		for (const auto& s : logContent)
+		{
+			outFile << s << std::endl;
+		}
+
+		outFile << std::flush;
+		outFile.close();
+	}
+}
 #endif
 
 namespace Search {

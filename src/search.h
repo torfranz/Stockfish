@@ -23,6 +23,7 @@
 #include <memory>  // For std::auto_ptr
 #include <stack>
 #include <vector>
+#include <string>
 
 #include "misc.h"
 #include "position.h"
@@ -108,6 +109,7 @@ extern StateStackPtr SetupStates;
 void init();
 void think();
 void reset();
+void WriteLog();
 template<bool Root> uint64_t perft(Position& pos, Depth depth);
 
 } // namespace Search
