@@ -60,6 +60,9 @@
     <ClInclude Include="src\types.h" />
     <ClInclude Include="src\uci.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="src\Makefile" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{1FAC490E-2020-41E6-B5A4-6F5F6EEFA154}</ProjectGuid>
     <RootNamespace>Stockfishmaster</RootNamespace>
@@ -163,6 +166,15 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <ExceptionHandling>false</ExceptionHandling>
+      <SmallerTypeCheck>false</SmallerTypeCheck>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
