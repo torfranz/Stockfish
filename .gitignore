@@ -7,3 +7,6 @@ src/fishtest/
 src/fishbench*
 *.exe
 *.dll
+*.vspx
+*.opendb
+*.VC.db
