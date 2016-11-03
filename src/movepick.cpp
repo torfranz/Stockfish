@@ -150,11 +150,15 @@ void MovePicker::score<QUIETS>() {
   Color c = pos.side_to_move();
 
   for (auto& m : *this)
-      m.value =      history[pos.moved_piece(m)][to_sq(m)]
-               + (cm ? (*cm)[pos.moved_piece(m)][to_sq(m)] : VALUE_ZERO)
-               + (fm ? (*fm)[pos.moved_piece(m)][to_sq(m)] : VALUE_ZERO)
-               + (f2 ? (*f2)[pos.moved_piece(m)][to_sq(m)] : VALUE_ZERO)
-               + fromTo.get(c, m);
+  {
+	  const Piece movedPiece = pos.moved_piece(m);
+	  const Square toSquare = to_sq(m);
+	  m.value = history[movedPiece][toSquare]
+		  + (cm ? (*cm)[movedPiece][toSquare] : VALUE_ZERO)
+		  + (fm ? (*fm)[movedPiece][toSquare] : VALUE_ZERO)
+		  + (f2 ? (*f2)[movedPiece][toSquare] : VALUE_ZERO)
+		  + fromTo.get(c, m);
+  }
 }
 
 template<>
