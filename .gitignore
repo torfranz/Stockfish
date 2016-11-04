@@ -1,0 +1,12 @@
+References/
+TestResults/
+x64/
+.vs*/
+.cr/
+src/fishtest/
+src/fishbench*
+*.exe
+*.dll
+*.vspx
+*.opendb
+*.VC.db
