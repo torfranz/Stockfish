@@ -186,8 +186,7 @@ namespace {
   const Score MinorBehindPawn     = S(16,  0);
   const Score BishopPawns         = S( 8, 12);
   const Score RookOnPawn          = S( 8, 24);
-  const Score RookOnLastPawn	  = S(30, 24);
-  const Score RookOn7thRank		  = S(40, 24);
+  const Score RookOn7thRank		  = S(30, 20);
   const Score TrappedRook         = S(92,  0);
   const Score WeakQueen           = S(50, 10);
   const Score OtherCheck          = S(10, 10);
@@ -349,10 +348,6 @@ namespace {
             // Bonus for aligning with enemy pawns on the same rank/file
             if (relative_rank(Us, s) >= RANK_5)
                 score += RookOnPawn * popcount(pos.pieces(Them, PAWN) & PseudoAttacks[ROOK][s]);
-
-			// additional bonus when rank aligns with last rank of enemy pawns
-			if(relative_rank(Us, backmost_sq(Them, pos.pieces(Them, PAWN))) == relative_rank(Us, s))
-				score += RookOnLastPawn;
 
 			// Bonus for being on 7th (2nd) rank when enemy king is still on 8th (1st)
 			if (relative_rank(Us, s) == RANK_7 && relative_rank(Us, pos.square<KING>(Them)) == RANK_8)
