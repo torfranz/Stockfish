@@ -348,9 +348,13 @@ namespace {
             if (relative_rank(Us, s) >= RANK_5)
                 score += RookOnPawn * popcount(pos.pieces(Them, PAWN) & PseudoAttacks[ROOK][s]);
 
-            // Bonus when on an open or semi-open file
-            if (ei.pe->semiopen_file(Us, file_of(s)))
-                score += RookOnFile[!!ei.pe->semiopen_file(Them, file_of(s))];
+            // Bonus when on an open or semi-open file,
+			// if on an open file while there are at most 2 open files doubles the bonus
+			if (ei.pe->semiopen_file(Us, file_of(s)))
+				if(!!ei.pe->semiopen_file(Them, file_of(s)))
+					score += RookOnFile[true] * ((ei.pe->open_files() <= 2) ? 2 : 1);
+				else
+					score += RookOnFile[false];
 
             // Penalty when trapped by the king, even more if the king cannot castle
             else if (mob <= 3)
