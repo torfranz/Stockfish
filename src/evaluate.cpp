@@ -186,6 +186,7 @@ namespace {
   const Score MinorBehindPawn     = S(16,  0);
   const Score BishopPawns         = S( 8, 12);
   const Score RookOnPawn          = S( 8, 24);
+  const Score RookOnOnlyOpenFile  = S(30, 10);
   const Score TrappedRook         = S(92,  0);
   const Score WeakQueen           = S(50, 10);
   const Score OtherCheck          = S(10, 10);
@@ -348,9 +349,15 @@ namespace {
             if (relative_rank(Us, s) >= RANK_5)
                 score += RookOnPawn * popcount(pos.pieces(Them, PAWN) & PseudoAttacks[ROOK][s]);
 
-            // Bonus when on an open or semi-open file
+            // Bonus when on an open or semi-open file, give some extra when being on the only available open line
             if (ei.pe->semiopen_file(Us, file_of(s)))
-                score += RookOnFile[!!ei.pe->semiopen_file(Them, file_of(s))];
+				if (!!ei.pe->semiopen_file(Them, file_of(s)))
+					if(ei.pe->open_files() == 1)
+						score += RookOnFile[true] + RookOnOnlyOpenFile;
+					else
+						score += RookOnFile[true];
+			    else
+				    score += RookOnFile[false];
 
             // Penalty when trapped by the king, even more if the king cannot castle
             else if (mob <= 3)
