@@ -352,7 +352,7 @@ namespace {
 			// if on the only open file double the bonus
 			if (ei.pe->semiopen_file(Us, file_of(s)))
 				if(!!ei.pe->semiopen_file(Them, file_of(s)))
-					score += RookOnFile[true] * (1 + (ei.pe->open_files() == 1));
+					score += RookOnFile[true] * ((ei.pe->open_files() == 1) ? 2 : 1);
 				else
 					score += RookOnFile[false];
 
