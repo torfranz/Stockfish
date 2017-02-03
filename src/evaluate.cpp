@@ -192,7 +192,6 @@ namespace {
   const Score PawnlessFlank       = S(20, 80);
   const Score LooseEnemies        = S( 0, 25);
   const Score ThreatByHangingPawn = S(71, 61);
-  const Score ThreatByRank        = S(16,  3);
   const Score Hanging             = S(48, 27);
   const Score ThreatByPawnPush    = S(38, 22);
   const Score HinderPassedPawn    = S( 7,  0);
@@ -558,32 +557,26 @@ namespace {
           &  ei.attackedBy[Us][ALL_PIECES];
 
     // Add a bonus according to the kind of attacking pieces
-    if (defended | weak)
-    {
-        b = (defended | weak) & (ei.attackedBy[Us][KNIGHT] | ei.attackedBy[Us][BISHOP]);
-        while (b)
-        {
-            Square s = pop_lsb(&b);
-            score += ThreatByMinor[type_of(pos.piece_on(s))];
-            if (type_of(pos.piece_on(s)) != PAWN)
-                score += ThreatByRank * (int)relative_rank(Them, s);
-        }
+	if (defended | weak)
+	{
+		b = (defended | weak) & (ei.attackedBy[Us][KNIGHT] | ei.attackedBy[Us][BISHOP]);
+		while (b)
+		{
+			score += ThreatByMinor[type_of(pos.piece_on(pop_lsb(&b)))];
+		}
 
-        b = (pos.pieces(Them, QUEEN) | weak) & ei.attackedBy[Us][ROOK];
-        while (b)
-        {
-            Square s = pop_lsb(&b);
-            score += ThreatByRook[type_of(pos.piece_on(s))];
-            if (type_of(pos.piece_on(s)) != PAWN)
-                score += ThreatByRank * (int)relative_rank(Them, s);
-        }
+		b = (pos.pieces(Them, QUEEN) | weak) & ei.attackedBy[Us][ROOK];
+		while (b)
+		{
+			score += ThreatByRook[type_of(pos.piece_on(pop_lsb(&b)))];
+		}
 
-        score += Hanging * popcount(weak & ~ei.attackedBy[Them][ALL_PIECES]);
+		score += Hanging * popcount(weak & ~ei.attackedBy[Them][ALL_PIECES]);
 
-        b = weak & ei.attackedBy[Us][KING];
-        if (b)
-            score += ThreatByKing[more_than_one(b)];
-    }
+		b = weak & ei.attackedBy[Us][KING];
+		if (b)
+			score += ThreatByKing[more_than_one(b)];
+	}
 
     // Bonus if some pawns can safely push and attack an enemy piece
     b = pos.pieces(Us, PAWN) & ~TRank7BB;
