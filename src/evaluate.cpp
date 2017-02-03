@@ -852,7 +852,7 @@ Value Eval::evaluate(const Position& pos) {
   score +=  evaluate_passer_pawns<WHITE, DoTrace>(pos, ei)
           - evaluate_passer_pawns<BLACK, DoTrace>(pos, ei);
 
-  // Evaluate space for both sides, only during opening
+  // Evaluate space for both sides
   score +=  evaluate_space<WHITE>(pos, ei)
           - evaluate_space<BLACK>(pos, ei);
 
