@@ -153,17 +153,6 @@ namespace {
     S(0, 0), S(0, 0), S(176, 139), S(131, 127), S(217, 218), S(203, 215)
   };
 
-  // ThreatByMinor/ByRook[attacked PieceType] contains bonuses according to
-  // which piece type attacks which one. Attacks on lesser pieces which are
-  // pawn-defended are not considered.
-  const Score ThreatByMinor[PIECE_TYPE_NB] = {
-    S(0, 0), S(0, 33), S(45, 43), S(46, 47), S(72, 107), S(48, 118)
-  };
-
-  const Score ThreatByRook[PIECE_TYPE_NB] = {
-    S(0, 0), S(0, 25), S(40, 62), S(40, 59), S( 0, 34), S(35, 48)
-  };
-
   // ThreatByKing[on one/on many] contains bonuses for king attacks on
   // pawns or pieces which are not pawn-defended.
   const Score ThreatByKing[2] = { S(3, 62), S(9, 138) };
@@ -192,7 +181,6 @@ namespace {
   const Score PawnlessFlank       = S(20, 80);
   const Score LooseEnemies        = S( 0, 25);
   const Score ThreatByHangingPawn = S(71, 61);
-  const Score ThreatByRank        = S(16,  3);
   const Score Hanging             = S(48, 27);
   const Score ThreatByPawnPush    = S(38, 22);
   const Score HinderPassedPawn    = S( 7,  0);
@@ -560,23 +548,9 @@ namespace {
     // Add a bonus according to the kind of attacking pieces
     if (defended | weak)
     {
-        b = (defended | weak) & (ei.attackedBy[Us][KNIGHT] | ei.attackedBy[Us][BISHOP]);
-        while (b)
-        {
-            Square s = pop_lsb(&b);
-            score += ThreatByMinor[type_of(pos.piece_on(s))];
-            if (type_of(pos.piece_on(s)) != PAWN)
-                score += ThreatByRank * (int)relative_rank(Them, s);
-        }
-
-        b = (pos.pieces(Them, QUEEN) | weak) & ei.attackedBy[Us][ROOK];
-        while (b)
-        {
-            Square s = pop_lsb(&b);
-            score += ThreatByRook[type_of(pos.piece_on(s))];
-            if (type_of(pos.piece_on(s)) != PAWN)
-                score += ThreatByRank * (int)relative_rank(Them, s);
-        }
+        b = ((defended | weak) & (ei.attackedBy[Us][KNIGHT] | ei.attackedBy[Us][BISHOP])) | 
+			((pos.pieces(Them, QUEEN) | weak) & ei.attackedBy[Us][ROOK]);
+		score += make_score(55, 75) * popcount(b);
 
         score += Hanging * popcount(weak & ~ei.attackedBy[Them][ALL_PIECES]);
 
