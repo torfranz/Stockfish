@@ -82,8 +82,11 @@ public:
   // Position representation
   Bitboard pieces() const;
   Bitboard pieces(PieceType pt) const;
-  Bitboard pieces(PieceType pt1, PieceType pt2) const;
+  template<PieceType Pt> Bitboard pieces() const;
+  template<PieceType Pt1, PieceType Pt2> Bitboard pieces() const;
+  
   Bitboard pieces(Color c) const;
+  
   Bitboard pieces(Color c, PieceType pt) const;
   Bitboard pieces(Color c, PieceType pt1, PieceType pt2) const;
   Piece piece_on(Square s) const;
@@ -216,8 +219,14 @@ inline Bitboard Position::pieces(PieceType pt) const {
   return byTypeBB[pt];
 }
 
-inline Bitboard Position::pieces(PieceType pt1, PieceType pt2) const {
-  return byTypeBB[pt1] | byTypeBB[pt2];
+template<PieceType Pt>
+inline Bitboard Position::pieces() const {
+	return byTypeBB[Pt];
+}
+
+template<PieceType Pt1, PieceType Pt2>
+inline Bitboard Position::pieces() const {
+	return byTypeBB[Pt1] | byTypeBB[Pt2];
 }
 
 inline Bitboard Position::pieces(Color c) const {

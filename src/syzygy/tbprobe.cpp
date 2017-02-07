@@ -410,7 +410,7 @@ WDLEntry::WDLEntry(const std::string& code) {
     ready = false;
     key = pos.set(code, WHITE, &st).material_key();
     pieceCount = popcount(pos.pieces());
-    hasPawns = pos.pieces(PAWN);
+    hasPawns = pos.pieces<PAWN>();
 
     for (Color c = WHITE; c <= BLACK; ++c)
         for (PieceType pt = PAWN; pt < KING; ++pt)

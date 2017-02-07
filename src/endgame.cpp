@@ -358,7 +358,7 @@ ScaleFactor Endgame<KBPsK>::operator()(const Position& pos) const {
 
   // If all the pawns are on the same B or G file, then it's potentially a draw
   if (    (pawnsFile == FILE_B || pawnsFile == FILE_G)
-      && !(pos.pieces(PAWN) & ~file_bb(pawnsFile))
+      && !(pos.pieces<PAWN>() & ~file_bb(pawnsFile))
       && pos.non_pawn_material(weakSide) == 0
       && pos.count<PAWN>(weakSide) >= 1)
   {
@@ -526,7 +526,7 @@ ScaleFactor Endgame<KRPKB>::operator()(const Position& pos) const {
   assert(verify_material(pos, weakSide, BishopValueMg, 0));
 
   // Test for a rook pawn
-  if (pos.pieces(PAWN) & (FileABB | FileHBB))
+  if (pos.pieces<PAWN>() & (FileABB | FileHBB))
   {
       Square ksq = pos.square<KING>(weakSide);
       Square bsq = pos.square<BISHOP>(weakSide);
