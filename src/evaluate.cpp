@@ -264,16 +264,17 @@ namespace {
     const Color Them = (Us == WHITE ? BLACK : WHITE);
     const Bitboard OutpostRanks = (Us == WHITE ? Rank4BB | Rank5BB | Rank6BB
                                                : Rank5BB | Rank4BB | Rank3BB);
-    const Square* pl = pos.squares<Pt>(Us);
-
     Bitboard b, bb;
     Square s;
     Score score = SCORE_ZERO;
 
     ei.attackedBy[Us][Pt] = 0;
 
-    while ((s = *pl++) != SQ_NONE)
+	Bitboard pieces = pos.pieces(Us, Pt);
+    while (pieces)
     {
+		s = pop_lsb(&pieces);
+
         // Find attacked squares, including x-ray attacks for bishops and rooks
         b = Pt == BISHOP ? attacks_bb<BISHOP>(s, pos.pieces() ^ pos.pieces(Us, QUEEN))
           : Pt ==   ROOK ? attacks_bb<  ROOK>(s, pos.pieces() ^ pos.pieces(Us, ROOK, QUEEN))

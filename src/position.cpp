@@ -199,7 +199,6 @@ Position& Position::set(const string& fenStr, bool isChess960, StateInfo* si, Th
 
   std::memset(this, 0, sizeof(Position));
   std::memset(si, 0, sizeof(StateInfo));
-  std::fill_n(&pieceList[0][0], sizeof(pieceList) / sizeof(Square), SQ_NONE);
   st = si;
 
   ss >> std::noskipws;
@@ -1191,7 +1190,7 @@ bool Position::pos_is_ok(int* failedStep) const {
               return false;
       }
 
-      if (step == Lists)
+      /*if (step == Lists)
           for (Piece pc : Pieces)
           {
               if (pieceCount[pc] != popcount(pieces(color_of(pc), type_of(pc))))
@@ -1200,7 +1199,7 @@ bool Position::pos_is_ok(int* failedStep) const {
               for (int i = 0; i < pieceCount[pc]; ++i)
                   if (board[pieceList[pc][i]] != pc || index[pieceList[pc][i]] != i)
                       return false;
-          }
+          }*/
 
       if (step == Castling)
           for (Color c = WHITE; c <= BLACK; ++c)
