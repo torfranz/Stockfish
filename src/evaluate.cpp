@@ -270,8 +270,7 @@ namespace {
 
     ei.attackedBy[Us][Pt] = 0;
 
-	Bitboard pieces = pos.pieces(Us, Pt);
-    while (pieces)
+	for (Bitboard pieces = pos.pieces(Us, Pt); pieces; )
     {
 		s = pop_lsb(&pieces);
 
@@ -730,7 +729,7 @@ namespace {
 
     int kingDistance =  distance<File>(pos.square<KING>(WHITE), pos.square<KING>(BLACK))
                       - distance<Rank>(pos.square<KING>(WHITE), pos.square<KING>(BLACK));
-    int pawns = pos.count<PAWN>(WHITE) + pos.count<PAWN>(BLACK);
+    int pawns = popcount(pos.pieces(PAWN));
 
     // Compute the initiative bonus for the attacking side
     int initiative = 8 * (asymmetry + kingDistance - 15) + 12 * pawns;

@@ -140,12 +140,11 @@ Value Endgame<KXK>::operator()(const Position& pos) const {
                 + PushToEdges[loserKSq]
                 + PushClose[distance(winnerKSq, loserKSq)];
 
-  Bitboard bishops = pos.pieces(strongSide, BISHOP);
   if (   pos.count<QUEEN>(strongSide)
       || pos.count<ROOK>(strongSide)
       ||(pos.count<BISHOP>(strongSide) && pos.count<KNIGHT>(strongSide))
-      ||(pos.count<BISHOP>(strongSide) > 1 && opposite_colors(pop_lsb(&bishops),
-		                                                      pop_lsb(&bishops))))
+      ||(pos.count<BISHOP>(strongSide) > 1 && opposite_colors(lsb(pos.pieces(strongSide, BISHOP)),
+		                                                      msb(pos.pieces(strongSide, BISHOP)))))
       result = std::min(result + VALUE_KNOWN_WIN, VALUE_MATE_IN_MAX_PLY - 1);
 
   return strongSide == pos.side_to_move() ? result : -result;
@@ -572,9 +571,8 @@ ScaleFactor Endgame<KRPPKRP>::operator()(const Position& pos) const {
   assert(verify_material(pos, strongSide, RookValueMg, 2));
   assert(verify_material(pos, weakSide,   RookValueMg, 1));
 
-  Bitboard pawns = pos.pieces(strongSide, PAWN);
-  Square wpsq1 = pop_lsb(&pawns);
-  Square wpsq2 = pop_lsb(&pawns);
+  Square wpsq1 = lsb(pos.pieces(strongSide, PAWN));
+  Square wpsq2 = msb(pos.pieces(strongSide, PAWN));
   Square bksq = pos.square<KING>(weakSide);
 
   // Does the stronger side have a passed pawn?
@@ -682,9 +680,8 @@ ScaleFactor Endgame<KBPPKB>::operator()(const Position& pos) const {
       return SCALE_FACTOR_NONE;
 
   Square ksq = pos.square<KING>(weakSide);
-  Bitboard pawns = pos.pieces(strongSide, PAWN);
-  Square psq1 = pop_lsb(&pawns);
-  Square psq2 = pop_lsb(&pawns);
+  Square psq1 = lsb(pos.pieces(strongSide, PAWN));
+  Square psq2 = msb(pos.pieces(strongSide, PAWN));
   
   Rank r1 = rank_of(psq1);
   Rank r2 = rank_of(psq2);

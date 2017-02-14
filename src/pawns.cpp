@@ -116,8 +116,7 @@ namespace {
     e->pawnsOnSquares[Us][WHITE] = pos.count<PAWN>(Us) - e->pawnsOnSquares[Us][BLACK];
 
     // Loop through all pawns of the current color and score each pawn
-	Bitboard pawns = pos.pieces(Us, PAWN);
-	while (pawns)
+	for (Bitboard pawns = ourPawns; pawns; )
 	{
 		s = pop_lsb(&pawns);
         assert(pos.piece_on(s) == make_piece(Us, PAWN));
