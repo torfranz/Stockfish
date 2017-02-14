@@ -66,7 +66,7 @@ extern Bitboard FileBB[FILE_NB];
 extern Bitboard RankBB[RANK_NB];
 extern Bitboard AdjacentFilesBB[FILE_NB];
 extern Bitboard InFrontBB[COLOR_NB][RANK_NB];
-extern Bitboard StepAttacksBB[PIECE_NB][SQUARE_NB];
+extern Bitboard StepAttacksBB[COLOR_NB][PIECE_TYPE_NB][SQUARE_NB];
 extern Bitboard BetweenBB[SQUARE_NB][SQUARE_NB];
 extern Bitboard LineBB[SQUARE_NB][SQUARE_NB];
 extern Bitboard DistanceRingBB[SQUARE_NB][8];
@@ -246,14 +246,14 @@ inline Bitboard attacks_bb(Square s, Bitboard occupied) {
   return (Pt == ROOK ? RookAttacks : BishopAttacks)[s][magic_index<Pt>(s, occupied)];
 }
 
-inline Bitboard attacks_bb(Piece pc, Square s, Bitboard occupied) {
+inline Bitboard attacks_bb(Color c, PieceType pt, Square s, Bitboard occupied) {
 
-  switch (type_of(pc))
+  switch (pt)
   {
   case BISHOP: return attacks_bb<BISHOP>(s, occupied);
   case ROOK  : return attacks_bb<ROOK>(s, occupied);
   case QUEEN : return attacks_bb<BISHOP>(s, occupied) | attacks_bb<ROOK>(s, occupied);
-  default    : return StepAttacksBB[pc][s];
+  default    : return StepAttacksBB[c][pt][s];
   }
 }
 

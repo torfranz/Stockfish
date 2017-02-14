@@ -103,8 +103,9 @@ namespace {
     Square s;
     bool opposed, backward;
     Score score = SCORE_ZERO;
+
     const Square* pl = pos.squares<PAWN>(Us);
-    const Bitboard* pawnAttacksBB = StepAttacksBB[make_piece(Us, PAWN)];
+    const Bitboard* pawnAttacksBB = StepAttacksBB[Us][PAWN];
 
     Bitboard ourPawns   = pos.pieces(Us  , PAWN);
     Bitboard theirPawns = pos.pieces(Them, PAWN);

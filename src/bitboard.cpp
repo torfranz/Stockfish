@@ -41,7 +41,7 @@ Bitboard FileBB[FILE_NB];
 Bitboard RankBB[RANK_NB];
 Bitboard AdjacentFilesBB[FILE_NB];
 Bitboard InFrontBB[COLOR_NB][RANK_NB];
-Bitboard StepAttacksBB[PIECE_NB][SQUARE_NB];
+Bitboard StepAttacksBB[COLOR_NB][PIECE_TYPE_NB][SQUARE_NB];
 Bitboard BetweenBB[SQUARE_NB][SQUARE_NB];
 Bitboard LineBB[SQUARE_NB][SQUARE_NB];
 Bitboard DistanceRingBB[SQUARE_NB][8];
@@ -202,7 +202,7 @@ void Bitboards::init() {
                   Square to = s + Square(c == WHITE ? steps[pt][i] : -steps[pt][i]);
 
                   if (is_ok(to) && distance(s, to) < 3)
-                      StepAttacksBB[make_piece(c, pt)][s] |= to;
+                      StepAttacksBB[c][pt][s] |= to;
               }
 
   Square RookDeltas[] = { NORTH,  EAST,  SOUTH,  WEST  };
@@ -216,14 +216,14 @@ void Bitboards::init() {
       PseudoAttacks[QUEEN][s1]  = PseudoAttacks[BISHOP][s1] = attacks_bb<BISHOP>(s1, 0);
       PseudoAttacks[QUEEN][s1] |= PseudoAttacks[  ROOK][s1] = attacks_bb<  ROOK>(s1, 0);
 
-      for (Piece pc = W_BISHOP; pc <= W_ROOK; ++pc)
+      for (PieceType pt = BISHOP; pt <= ROOK; ++pt)
           for (Square s2 = SQ_A1; s2 <= SQ_H8; ++s2)
           {
-              if (!(PseudoAttacks[pc][s1] & s2))
+              if (!(PseudoAttacks[pt][s1] & s2))
                   continue;
 
-              LineBB[s1][s2] = (attacks_bb(pc, s1, 0) & attacks_bb(pc, s2, 0)) | s1 | s2;
-              BetweenBB[s1][s2] = attacks_bb(pc, s1, SquareBB[s2]) & attacks_bb(pc, s2, SquareBB[s1]);
+              LineBB[s1][s2] = (attacks_bb(WHITE, pt, s1, 0) & attacks_bb(WHITE, pt, s2, 0)) | s1 | s2;
+              BetweenBB[s1][s2] = attacks_bb(WHITE, pt, s1, SquareBB[s2]) & attacks_bb(WHITE, pt, s2, SquareBB[s1]);
           }
   }
 }
