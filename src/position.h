@@ -89,6 +89,7 @@ public:
   Piece piece_on(Square s) const;
   Square ep_square() const;
   bool empty(Square s) const;
+  int count(Color c, PieceType Pt) const;
   template<PieceType Pt> int count(Color c) const;
   template<PieceType Pt> Square square(Color c) const;
 
@@ -175,7 +176,6 @@ private:
   Piece board[SQUARE_NB];
   Bitboard byTypeBB[PIECE_TYPE_NB];
   Bitboard byColorBB[COLOR_NB];
-  int pieceCount[PIECE_NB];
   int castlingRightsMask[SQUARE_NB];
   Square castlingRookSquare[CASTLING_RIGHT_NB];
   Bitboard castlingPath[CASTLING_RIGHT_NB];
@@ -230,7 +230,11 @@ inline Bitboard Position::pieces(Color c, PieceType pt1, PieceType pt2) const {
 }
 
 template<PieceType Pt> inline int Position::count(Color c) const {
-  return pieceCount[make_piece(c, Pt)];
+	return popcount(pieces(c, Pt));
+}
+
+inline int Position::count(Color c, PieceType pt) const {
+	return popcount(pieces(c, pt));
 }
 
 template<PieceType Pt> inline Square Position::square(Color c) const {
@@ -336,8 +340,8 @@ inline uint64_t Position::nodes_searched() const {
 }
 
 inline bool Position::opposite_bishops() const {
-  return   pieceCount[W_BISHOP] == 1
-        && pieceCount[B_BISHOP] == 1
+  return   count<BISHOP>(WHITE) == 1
+        && count<BISHOP>(BLACK) == 1
         && opposite_colors(square<BISHOP>(WHITE), square<BISHOP>(BLACK));
 }
 
@@ -370,8 +374,6 @@ inline void Position::put_piece(Piece pc, Square s) {
   byTypeBB[ALL_PIECES] |= s;
   byTypeBB[type_of(pc)] |= s;
   byColorBB[color_of(pc)] |= s;
-  pieceCount[pc]++;
-  pieceCount[make_piece(color_of(pc), ALL_PIECES)]++;
 }
 
 inline void Position::remove_piece(Piece pc, Square s) {
@@ -384,8 +386,6 @@ inline void Position::remove_piece(Piece pc, Square s) {
   byTypeBB[type_of(pc)] ^= s;
   byColorBB[color_of(pc)] ^= s;
   /* board[s] = NO_PIECE;  Not needed, overwritten by the capturing one */
-  --pieceCount[pc];
-  pieceCount[make_piece(color_of(pc), ALL_PIECES)]--;
 }
 
 inline void Position::move_piece(Piece pc, Square from, Square to) {

@@ -364,13 +364,19 @@ void Position::set_state(StateInfo* si) const {
       si->pawnKey ^= Zobrist::psq[piece_on(s)][s];
   }
 
-  for (Piece pc : Pieces)
+  for (PieceType pt = PAWN; pt <= KING; ++pt)
   {
-      if (type_of(pc) != PAWN && type_of(pc) != KING)
-          si->nonPawnMaterial[color_of(pc)] += pieceCount[pc] * PieceValue[MG][pc];
 
-      for (int cnt = 0; cnt < pieceCount[pc]; ++cnt)
-          si->materialKey ^= Zobrist::psq[pc][cnt];
+	  if (pt != PAWN && pt != KING) {
+		  si->nonPawnMaterial[WHITE] += count(WHITE, pt) * PieceValue[MG][make_piece(WHITE, pt)];
+		  si->nonPawnMaterial[BLACK] += count(BLACK, pt) * PieceValue[MG][make_piece(BLACK, pt)];
+	  }
+
+      for (int cnt = 0; cnt < count(WHITE, pt); ++cnt)
+          si->materialKey ^= Zobrist::psq[make_piece(WHITE, pt)][cnt];
+
+	  for (int cnt = 0; cnt < count(BLACK, pt); ++cnt)
+		  si->materialKey ^= Zobrist::psq[make_piece(BLACK, pt)][cnt];
   }
 }
 
@@ -758,7 +764,7 @@ void Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
 
       // Update material hash key and prefetch access to materialTable
       k ^= Zobrist::psq[captured][capsq];
-      st->materialKey ^= Zobrist::psq[captured][pieceCount[captured]];
+      st->materialKey ^= Zobrist::psq[captured][count(them, type_of(captured))];
       prefetch(thisThread->materialTable[st->materialKey]);
 
       // Update incremental scores
@@ -814,8 +820,8 @@ void Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
           // Update hash keys
           k ^= Zobrist::psq[pc][to] ^ Zobrist::psq[promotion][to];
           st->pawnKey ^= Zobrist::psq[pc][to];
-          st->materialKey ^=  Zobrist::psq[promotion][pieceCount[promotion]-1]
-                            ^ Zobrist::psq[pc][pieceCount[pc]];
+          st->materialKey ^=  Zobrist::psq[promotion][count(us, type_of(promotion))-1]
+                            ^ Zobrist::psq[pc][count(us, type_of(pc))];
 
           // Update incremental score
           st->psq += PSQT::psq[promotion][to] - PSQT::psq[pc][to];
@@ -1189,17 +1195,6 @@ bool Position::pos_is_ok(int* failedStep) const {
           if (std::memcmp(&si, st, sizeof(StateInfo)))
               return false;
       }
-
-      /*if (step == Lists)
-          for (Piece pc : Pieces)
-          {
-              if (pieceCount[pc] != popcount(pieces(color_of(pc), type_of(pc))))
-                  return false;
-
-              for (int i = 0; i < pieceCount[pc]; ++i)
-                  if (board[pieceList[pc][i]] != pc || index[pieceList[pc][i]] != i)
-                      return false;
-          }*/
 
       if (step == Castling)
           for (Color c = WHITE; c <= BLACK; ++c)
