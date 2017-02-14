@@ -238,7 +238,6 @@ inline int Position::count(Color c, PieceType pt) const {
 }
 
 template<PieceType Pt> inline Square Position::square(Color c) const {
-  assert(pieceCount[make_piece(c, Pt)] == 1);
   return lsb(pieces(c, Pt));
 }
 
