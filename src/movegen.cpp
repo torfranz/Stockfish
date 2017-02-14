@@ -231,8 +231,7 @@ namespace {
 
     assert(Pt != KING && Pt != PAWN);
 
-	Bitboard pieces = pos.pieces(us, Pt);
-	while (pieces)
+	for (Bitboard pieces = pos.pieces(us, Pt); pieces; )
 	{
 		Square from = pop_lsb(&pieces);
         if (Checks)
