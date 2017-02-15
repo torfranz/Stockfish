@@ -191,6 +191,7 @@ namespace {
   const Score CloseEnemies        = S( 7,  0);
   const Score PawnlessFlank       = S(20, 80);
   const Score ThreatByHangingPawn = S(71, 61);
+  const Score ThreatByRank = S(16, 3);
   const Score Hanging             = S(48, 27);
   const Score ThreatByPawnPush    = S(38, 22);
   const Score HinderPassedPawn    = S( 7,  0);
@@ -509,7 +510,10 @@ namespace {
 	Bitboard b = defended & (ei.attackedBy[Us][KNIGHT] | ei.attackedBy[Us][BISHOP]);
 	while (b)
 	{
-		score += ThreatByMinor[type_of(pos.piece_on(pop_lsb(&b)))];
+		Square s = pop_lsb(&b);
+		score += ThreatByMinor[type_of(pos.piece_on(s))];
+		if (type_of(pos.piece_on(s)) != PAWN)
+			score += ThreatByRank * (int)relative_rank(Them, s);
 	}
 
 	return score;
@@ -528,7 +532,10 @@ namespace {
 	Bitboard b = (defended & ei.attackedBy[Us][ROOK]);
 	while (b)
 	{
-		score += ThreatByRook[type_of(pos.piece_on(pop_lsb(&b)))];
+		Square s = pop_lsb(&b);
+		score += ThreatByRook[type_of(pos.piece_on(s))];
+		if (type_of(pos.piece_on(s)) != PAWN)
+			score += ThreatByRank * (int)relative_rank(Them, s);
 	}
 
 	return score;
