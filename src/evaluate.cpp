@@ -496,51 +496,7 @@ namespace {
 
     return score;
   }
-
-  template<Color Us>
-  Score evaluate_minor_threats(const Position& pos, const EvalInfo& ei) {
-
-    const Color Them = (Us == WHITE ? BLACK : WHITE);
-	Score score = SCORE_ZERO;
-
-	// Non-pawn defended enemies
-	Bitboard defended = (pos.pieces(Them) ^ pos.pieces(Them, PAWN) ^ pos.pieces(Them, KING)) & ei.attackedBy[Them][ALL_PIECES];
-
-	// Add a bonus according to the kind of attacking pieces
-	Bitboard b = defended & (ei.attackedBy[Us][KNIGHT] | ei.attackedBy[Us][BISHOP]);
-	while (b)
-	{
-		Square s = pop_lsb(&b);
-		score += ThreatByMinor[type_of(pos.piece_on(s))];
-		if (type_of(pos.piece_on(s)) != PAWN)
-			score += ThreatByRank * (int)relative_rank(Them, s);
-	}
-
-	return score;
-  }
-
-  template<Color Us>
-  Score evaluate_major_threats(const Position& pos, const EvalInfo& ei) {
-
-	const Color Them = (Us == WHITE ? BLACK : WHITE);
-	Score score = SCORE_ZERO;
-
-	// defended major enemies
-	Bitboard defended = (pos.pieces(Them, QUEEN) | pos.pieces(Them, ROOK)) & ei.attackedBy[Them][ALL_PIECES];
-
-	// Add a bonus according to the kind of attacking pieces
-	Bitboard b = (defended & ei.attackedBy[Us][ROOK]);
-	while (b)
-	{
-		Square s = pop_lsb(&b);
-		score += ThreatByRook[type_of(pos.piece_on(s))];
-		if (type_of(pos.piece_on(s)) != PAWN)
-			score += ThreatByRank * (int)relative_rank(Them, s);
-	}
-
-	return score;
-  }
-
+  
   // evaluate_threats() assigns bonuses according to the types of the attacking
   // and the attacked pieces.
 
@@ -574,11 +530,27 @@ namespace {
             score += ThreatBySafePawn[type_of(pos.piece_on(pop_lsb(&safeThreats)))];
     }
 
-	// score threats from our minor pieces
-	score += evaluate_minor_threats<Us>(pos, ei);
+	// defended major enemies
+	Bitboard defended = (pos.pieces(Them, QUEEN) | pos.pieces(Them, ROOK)) & ei.attackedBy[Them][ALL_PIECES];
 
-	// score threats from our major pieces
-	score += evaluate_major_threats<Us>(pos, ei);
+	// Add a bonus according to the kind of attacking pieces
+	b = defended & (ei.attackedBy[Us][KNIGHT] | ei.attackedBy[Us][BISHOP]);
+	while (b)
+	{
+		Square s = pop_lsb(&b);
+		score += ThreatByMinor[type_of(pos.piece_on(s))];
+		if (type_of(pos.piece_on(s)) != PAWN)
+			score += ThreatByRank * (int)relative_rank(Them, s);
+	}
+
+	b = (defended & ei.attackedBy[Us][ROOK]);
+	while (b)
+	{
+		Square s = pop_lsb(&b);
+		score += ThreatByRook[type_of(pos.piece_on(s))];
+		if (type_of(pos.piece_on(s)) != PAWN)
+			score += ThreatByRank * (int)relative_rank(Them, s);
+	}
 
 	// score hanging enemies
 	score += Hanging * popcount((pos.pieces(Them) & ~ei.attackedBy[Them][ALL_PIECES]) & (ei.attackedBy[Us][ALL_PIECES] ^ ei.attackedBy[Us][PAWN]));
