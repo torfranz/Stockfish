@@ -530,11 +530,13 @@ namespace {
             score += ThreatBySafePawn[type_of(pos.piece_on(pop_lsb(&safeThreats)))];
     }
 
-	// defended major enemies
-	Bitboard defended = (pos.pieces(Them, QUEEN) | pos.pieces(Them, ROOK)) & ei.attackedBy[Them][ALL_PIECES];
+	// threat by our minor pieces
+	// pawn defended minor enemies, all defended major enemies, all undefended enemy pawns
+	b = ((pos.pieces(Them, BISHOP) | pos.pieces(Them, KNIGHT)) & ei.attackedBy[Them][PAWN]) | 
+		((pos.pieces(Them, QUEEN) | pos.pieces(Them, ROOK)) & ei.attackedBy[Them][ALL_PIECES]) |
+		(pos.pieces(Them, PAWN) & ~ei.attackedBy[Them][ALL_PIECES]);
 
-	// Add a bonus according to the kind of attacking pieces
-	b = defended & (ei.attackedBy[Us][KNIGHT] | ei.attackedBy[Us][BISHOP]);
+	b &= (ei.attackedBy[Us][KNIGHT] | ei.attackedBy[Us][BISHOP]);
 	while (b)
 	{
 		Square s = pop_lsb(&b);
@@ -543,7 +545,12 @@ namespace {
 			score += ThreatByRank * (int)relative_rank(Them, s);
 	}
 
-	b = (defended & ei.attackedBy[Us][ROOK]);
+	// threats by our rooks
+	// pawn defended rook enemies, all defended enemy queen(s), all undefended enemy pawns
+	b = (pos.pieces(Them, ROOK) & ei.attackedBy[Them][PAWN]) | 
+		(pos.pieces(Them, QUEEN) & ei.attackedBy[Them][ALL_PIECES]) |
+		(pos.pieces(Them, PAWN) & ~ei.attackedBy[Them][ALL_PIECES]);
+	b &= ei.attackedBy[Us][ROOK];
 	while (b)
 	{
 		Square s = pop_lsb(&b);
@@ -552,8 +559,14 @@ namespace {
 			score += ThreatByRank * (int)relative_rank(Them, s);
 	}
 
+	// all undefended enemies attacked by our non pawns
+	Bitboard undefended = (pos.pieces(Them) & ~ei.attackedBy[Them][ALL_PIECES]) & (ei.attackedBy[Us][ALL_PIECES] ^ ei.attackedBy[Us][PAWN]);
+	b = undefended & ei.attackedBy[Us][KING];
+	if (b)
+		score += ThreatByKing[more_than_one(b)];
+
 	// score hanging enemies
-	score += Hanging * popcount((pos.pieces(Them) & ~ei.attackedBy[Them][ALL_PIECES]) & (ei.attackedBy[Us][ALL_PIECES] ^ ei.attackedBy[Us][PAWN]));
+	score += Hanging * popcount(undefended);
 	
     // Bonus if some pawns can safely push and attack an enemy piece
     b = pos.pieces(Us, PAWN) & ~TRank7BB;
