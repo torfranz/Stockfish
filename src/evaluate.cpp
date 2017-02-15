@@ -191,7 +191,6 @@ namespace {
   const Score CloseEnemies        = S( 7,  0);
   const Score PawnlessFlank       = S(20, 80);
   const Score ThreatByHangingPawn = S(71, 61);
-  const Score ThreatByRank        = S(16,  3);
   const Score Hanging             = S(48, 27);
   const Score ThreatByPawnPush    = S(38, 22);
   const Score HinderPassedPawn    = S( 7,  0);
@@ -497,6 +496,43 @@ namespace {
     return score;
   }
 
+  template<Color Us>
+  Score evaluate_minor_threats(const Position& pos, const EvalInfo& ei) {
+
+    const Color Them = (Us == WHITE ? BLACK : WHITE);
+	Score score = SCORE_ZERO;
+
+	// Non-pawn defended enemies
+	Bitboard defended = (pos.pieces(Them) ^ pos.pieces(Them, PAWN) ^ pos.pieces(Them, KING)) & ei.attackedBy[Them][ALL_PIECES];
+
+	// Add a bonus according to the kind of attacking pieces
+	Bitboard b = defended & (ei.attackedBy[Us][KNIGHT] | ei.attackedBy[Us][BISHOP]);
+	while (b)
+	{
+		score += ThreatByMinor[type_of(pos.piece_on(pop_lsb(&b)))];
+	}
+
+	return score;
+  }
+
+  template<Color Us>
+  Score evaluate_major_threats(const Position& pos, const EvalInfo& ei) {
+
+	const Color Them = (Us == WHITE ? BLACK : WHITE);
+	Score score = SCORE_ZERO;
+
+	// defended major enemies
+	Bitboard defended = (pos.pieces(Them, QUEEN) | pos.pieces(Them, ROOK)) & ei.attackedBy[Them][ALL_PIECES];
+
+	// Add a bonus according to the kind of attacking pieces
+	Bitboard b = (defended & ei.attackedBy[Us][ROOK]);
+	while (b)
+	{
+		score += ThreatByRook[type_of(pos.piece_on(pop_lsb(&b)))];
+	}
+
+	return score;
+  }
 
   // evaluate_threats() assigns bonuses according to the types of the attacking
   // and the attacked pieces.
@@ -511,7 +547,7 @@ namespace {
     const Bitboard TRank2BB = (Us == WHITE ? Rank2BB    : Rank7BB);
     const Bitboard TRank7BB = (Us == WHITE ? Rank7BB    : Rank2BB);
 
-    Bitboard b, weak, defended, safeThreats;
+    Bitboard b, weak, safeThreats;
     Score score = SCORE_ZERO;
 
     // Non-pawn enemies attacked by a pawn
@@ -531,42 +567,15 @@ namespace {
             score += ThreatBySafePawn[type_of(pos.piece_on(pop_lsb(&safeThreats)))];
     }
 
-    // Non-pawn enemies defended by a pawn
-    defended = (pos.pieces(Them) ^ pos.pieces(Them, PAWN)) & ei.attackedBy[Them][PAWN];
+	// score threats from our minor pieces
+	score += evaluate_minor_threats<Us>(pos, ei);
 
-    // Enemies not defended by a pawn and under our attack
-    weak =   pos.pieces(Them)
-          & ~ei.attackedBy[Them][PAWN]
-          &  ei.attackedBy[Us][ALL_PIECES];
+	// score threats from our major pieces
+	score += evaluate_major_threats<Us>(pos, ei);
 
-    // Add a bonus according to the kind of attacking pieces
-    if (defended | weak)
-    {
-        b = (defended | weak) & (ei.attackedBy[Us][KNIGHT] | ei.attackedBy[Us][BISHOP]);
-        while (b)
-        {
-            Square s = pop_lsb(&b);
-            score += ThreatByMinor[type_of(pos.piece_on(s))];
-            if (type_of(pos.piece_on(s)) != PAWN)
-                score += ThreatByRank * (int)relative_rank(Them, s);
-        }
-
-        b = (pos.pieces(Them, QUEEN) | weak) & ei.attackedBy[Us][ROOK];
-        while (b)
-        {
-            Square s = pop_lsb(&b);
-            score += ThreatByRook[type_of(pos.piece_on(s))];
-            if (type_of(pos.piece_on(s)) != PAWN)
-                score += ThreatByRank * (int)relative_rank(Them, s);
-        }
-
-        score += Hanging * popcount(weak & ~ei.attackedBy[Them][ALL_PIECES]);
-
-        b = weak & ei.attackedBy[Us][KING];
-        if (b)
-            score += ThreatByKing[more_than_one(b)];
-    }
-
+	// score hanging enemies
+	score += Hanging * popcount((pos.pieces(Them) & ~ei.attackedBy[Them][ALL_PIECES]) & (ei.attackedBy[Us][ALL_PIECES] ^ ei.attackedBy[Us][PAWN]));
+	
     // Bonus if some pawns can safely push and attack an enemy piece
     b = pos.pieces(Us, PAWN) & ~TRank7BB;
     b = shift<Up>(b | (shift<Up>(b & TRank2BB) & ~pos.pieces()));
