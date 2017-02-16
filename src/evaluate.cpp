@@ -476,18 +476,21 @@ namespace {
 	// Having one knight near our king or free to easily return to a square close to the king, is an important feature of king safety.  Inability to get one close can signal an attacking opportunity.
 	Bitboard ourKnights = pos.pieces(Us, KNIGHT);
 	if (ourKnights) {
-		int d = 8;
+		//int d = 8;
 		//Bitboard knightAttacks(0);
 		while (ourKnights) {
 			Square knightSq = pop_lsb(&ourKnights);
-			d = std::min(d, distance(ksq, knightSq));
+			if (distance(ksq, knightSq) <= 2) {
+				score += make_score(20, 0);
+				break;
+			}
 			//knightAttacks |= pos.attacks_from<KNIGHT>(knightSq);
 		}
 
 		// already close to king?
-		if (d <= 2) {
+		/*if (d <= 2) {
 			score += make_score(20, 0);
-		}
+		}*/
 		// or can go close to king?
 		/*else {
 			Bitboard reachable = (ei.kingRing[Us] & ~pos.pieces()) & (knightAttacks);
