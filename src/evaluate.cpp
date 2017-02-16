@@ -195,6 +195,7 @@ namespace {
   const Score Hanging             = S(48, 27);
   const Score ThreatByPawnPush    = S(38, 22);
   const Score HinderPassedPawn    = S( 7,  0);
+  const Score QueenKnightCoordination = S(20, 0);
 
   // Penalty for a bishop on a1/h1 (a8/h8 for black) which is trapped by
   // a friendly pawn on b2/g2 (b7/g7 for black). This can obviously only
@@ -359,6 +360,27 @@ namespace {
             Bitboard pinners;
             if (pos.slider_blockers(pos.pieces(Them, ROOK, BISHOP), s, pinners))
                 score -= WeakQueen;
+
+			// Having your queen near one of your knights and further from an opponent's knight often leads to better coordination in middlegame.
+			Bitboard theirKnights = pos.pieces(Them, KNIGHT);
+			Bitboard ourKnights = pos.pieces(Us, KNIGHT);
+			if ((bool)theirKnights && (bool)ourKnights) {
+				int enemyDistance = 8;
+				while (theirKnights) {
+					enemyDistance = std::min(enemyDistance, distance(s, pop_lsb(&theirKnights)));
+				}
+
+				if (enemyDistance >= 3) {
+					int ourDistance = 8;
+					while (ourKnights) {
+						ourDistance = std::min(ourDistance, distance(s, pop_lsb(&ourKnights)));
+					}
+
+					if (ourDistance <= 2) {
+						score += QueenKnightCoordination;
+					}
+				}
+			}
         }
     }
 
