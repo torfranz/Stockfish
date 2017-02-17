@@ -474,32 +474,19 @@ namespace {
     }
 
 	// Having one knight near our king or free to easily return to a square close to the king, is an important feature of king safety.  Inability to get one close can signal an attacking opportunity.
-	Bitboard ourKnights = pos.pieces(Us, KNIGHT);
-	if (ourKnights) {
+	if (pos.count<KNIGHT>(Us) > 0)
+	{
 		int d = 8;
-		Bitboard knightAttacks(0);
-		while (ourKnights) {
-			Square knightSq = pop_lsb(&ourKnights);
-			d = std::min(d, distance(ksq, knightSq));
-			knightAttacks |= pos.attacks_from<KNIGHT>(knightSq);
-		}
+		for (int k = 0; k < pos.count<KNIGHT>(Us); k++)
+			d = std::min(d, distance(ksq, pos.squares<KNIGHT>(Us)[k]));
 
-		// already close to king?
-		if (d <= 2) {
-			score += make_score(30, 0);
-		}
-		// or can go close to king?
-		else {
-			Bitboard reachable = (ei.kingRing[Us] & ~pos.pieces()) & (knightAttacks);
-			if (reachable) {
-				score += make_score(20, 0);
-			}
-			else {
-				score -= make_score(10, 0);
-			}
-		}
+		Bitboard reachable = ei.kingRing[Us] & ~pos.pieces() & ei.attackedBy[Us][KNIGHT];
+
+		score += d <= 2 ? make_score(30, 0)
+			: reachable ? make_score(20, 0)
+			: make_score(-10, 0);
 	}
-
+	
     // King tropism: firstly, find squares that opponent attacks in our king flank
     File kf = file_of(ksq);
     b = ei.attackedBy[Them][ALL_PIECES] & KingFlank[kf] & Camp;
