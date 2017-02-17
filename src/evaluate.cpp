@@ -486,13 +486,13 @@ namespace {
 
 		// already close to king?
 		if (d <= 2) {
-			score += make_score(20, 0);
+			score += make_score(30, 0);
 		}
 		// or can go close to king?
 		else {
 			Bitboard reachable = (ei.kingRing[Us] & ~pos.pieces()) & (knightAttacks);
 			if (reachable) {
-				score += make_score(10, 0);
+				score += make_score(20, 0);
 			}
 			else {
 				score -= make_score(10, 0);
