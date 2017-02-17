@@ -370,7 +370,7 @@ namespace {
 					enemyDistance = std::min(enemyDistance, distance(s, pop_lsb(&theirKnights)));
 				}
 
-				if (enemyDistance >= 3) {
+				if (enemyDistance >= 4) {
 					int ourDistance = 8;
 					while (ourKnights) {
 						ourDistance = std::min(ourDistance, distance(s, pop_lsb(&ourKnights)));
