@@ -362,25 +362,29 @@ namespace {
                 score -= WeakQueen;
 
 			// Having your queen near one of your knights and further from an opponent's knight often leads to better coordination in middlegame.
-			Bitboard theirKnights = pos.pieces(Them, KNIGHT);
+			//Bitboard theirKnights = pos.pieces(Them, KNIGHT);
 			Bitboard ourKnights = pos.pieces(Us, KNIGHT);
-			if ((bool)theirKnights && (bool)ourKnights) {
-				int enemyDistance = 8;
-				while (theirKnights) {
+			//if ((bool)theirKnights && (bool)ourKnights) {
+				//int enemyDistance = 8;
+				/*while (theirKnights) {
 					enemyDistance = std::min(enemyDistance, distance(s, pop_lsb(&theirKnights)));
-				}
+				}*/
 
-				if (enemyDistance >= 4) {
-					int ourDistance = 8;
+				//if (enemyDistance >= 4) {
+					//int ourDistance = 8;
 					while (ourKnights) {
-						ourDistance = std::min(ourDistance, distance(s, pop_lsb(&ourKnights)));
+						//ourDistance = std::min(ourDistance, distance(s, pop_lsb(&ourKnights)));
+						if (distance(s, pop_lsb(&ourKnights)) <= 2) {
+							score += QueenKnightCoordination;
+							break;
+						}
 					}
 
-					if (ourDistance <= 2) {
+					/*if (ourDistance <= 2) {
 						score += QueenKnightCoordination;
 					}
-				}
-			}
+				}*/
+			//}
         }
     }
 
