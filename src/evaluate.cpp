@@ -181,6 +181,10 @@ namespace {
     S(-20,-12), S( 1, -8), S( 2, 10), S(  9, 10)
   };
 
+  const Score KnightProtection[8] = {
+	  S(25, 25), S(15, 15), S(4, 4), S(-3, 3), S(-8, 8), S(-12, 12), S(-17, 17), S(-22, 22)
+  };
+
   // Assorted bonuses and penalties used by evaluation
   const Score MinorBehindPawn     = S(16,  0);
   const Score BishopPawns         = S( 8, 12);
@@ -384,7 +388,7 @@ namespace {
     CenterFiles << 2, CenterFiles << 2, CenterFiles << 2
   };
 
-  template<Color Us, bool DoTrace>
+    template<Color Us, bool DoTrace>
   Score evaluate_king(const Position& pos, const EvalInfo& ei) {
 
     const Color Them    = (Us == WHITE ? BLACK : WHITE);
@@ -480,11 +484,12 @@ namespace {
 		for (int k = 0; k < pos.count<KNIGHT>(Us); k++)
 			d = std::min(d, distance(ksq, pos.squares<KNIGHT>(Us)[k]));
 
-		Bitboard reachable = ei.kingRing[Us] & ~pos.pieces() & ei.attackedBy[Us][KNIGHT];
+		score += KnightProtection[d - 1];
+		/*Bitboard reachable = ei.kingRing[Us] & ~pos.pieces() & ei.attackedBy[Us][KNIGHT];
 
 		score += d <= 2 ? make_score(30, 0)
 			: reachable ? make_score(20, 0)
-			: make_score(-10, 0);
+			: make_score(-10, 0);*/
 	}
 	
     // King tropism: firstly, find squares that opponent attacks in our king flank
