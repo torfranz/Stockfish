@@ -182,7 +182,7 @@ namespace {
   };
 
   const Score KnightProtection[8] = {
-	  S(25, 25), S(15, 15), S(4, 4), S(-3, -3), S(-8, -8), S(-12, -12), S(-17, -17), S(-22, -22)
+	  S(20, 20), S(15, 15), S(10, 10), S(0, 0), S(-8, -8), S(-12, -12), S(-12, -12), S(-12, -12)
   };
 
   // Assorted bonuses and penalties used by evaluation
