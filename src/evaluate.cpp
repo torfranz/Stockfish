@@ -201,6 +201,10 @@ namespace {
   // happen in Chess960 games.
   const Score TrappedBishopA1H1 = S(50, 50);
 
+  // Test values
+  const Value CloseKnightBonus = V(30);
+  const Value KnightCanReturn = V(20);
+  const Value KnightAwayFromKing = V(-10);
   #undef S
   #undef V
 
@@ -473,6 +477,33 @@ namespace {
         if (kingDanger > 0)
             score -= make_score(std::min(kingDanger * kingDanger / 4096,  2 * int(BishopValueMg)), 0);
     }
+	
+	// Having one knight near our king or free to easily return to a square close to the king, is an important feature of king safety.  Inability to get one close can signal an attacking opportunity.
+	Bitboard ourKnights = pos.pieces(Us, KNIGHT);
+	if (ourKnights) {
+		int d = 8;
+		Bitboard knightAttacks(0);
+		while (ourKnights) {
+			Square knightSq = pop_lsb(&ourKnights);
+			d = std::min(d, distance(ksq, knightSq));
+			knightAttacks |= pos.attacks_from<KNIGHT>(knightSq);
+		}
+
+		// already close to king?
+		if (d <= 2) {
+			score += make_score(CloseKnightBonus, 0);
+		}
+		// or can go close to king?
+		else {
+			Bitboard reachable = (ei.kingRing[Us] & ~pos.pieces()) & (knightAttacks);
+			if (reachable) {
+				score += make_score(KnightCanReturn, 0);
+			}
+			else {
+				score += make_score(KnightAwayFromKing, 0);
+			}
+		}
+	}
 
     // King tropism: firstly, find squares that opponent attacks in our king flank
     File kf = file_of(ksq);
