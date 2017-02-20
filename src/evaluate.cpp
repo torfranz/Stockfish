@@ -181,6 +181,12 @@ namespace {
     S(-20,-12), S( 1, -8), S( 2, 10), S(  9, 10)
   };
 
+  // KnightProtection[distance] contains a bonus for the protection of a king
+  // by a knight, according to the distance.
+  const Score KnightProtection[8] = {
+	S(0, 0), S(17, 0), S(5, 0), S(-3, 0), S(-8, 0), S(-11, 0), S(-17, 0), S(-21, 0)
+  };
+
   // Assorted bonuses and penalties used by evaluation
   const Score MinorBehindPawn     = S(16,  0);
   const Score BishopPawns         = S( 8, 12);
@@ -473,6 +479,14 @@ namespace {
         if (kingDanger > 0)
             score -= make_score(std::min(kingDanger * kingDanger / 4096,  2 * int(BishopValueMg)), 0);
     }
+
+	// Score king defending quality of closest knight
+	if (pos.count<KNIGHT>(Us) > 0) {
+		int d = 8;
+		for (int k = 0; k < pos.count<KNIGHT>(Us); k++)
+			d = std::min(d, distance(ksq, pos.squares<KNIGHT>(Us)[k]));
+		score += KnightProtection[d];
+	}
 
     // King tropism: firstly, find squares that opponent attacks in our king flank
     File kf = file_of(ksq);
