@@ -159,10 +159,10 @@ void MovePicker::score<EVASIONS>() {
           m.value = history.get(c, m);
 }
 
-inline void MovePicker::prepare_moves() {
-	if (useSort = endMoves - cur > 10) {
+void MovePicker::prepare_moves() {
+	if (useSort = endMoves - cur > 5) {
 		ExtMove* goodPart = endMoves;
-		if (endMoves - cur > 20) {
+		if (depth < 3 * ONE_PLY) {
 			ExtMove* goodPart = std::partition(cur, endMoves, [](const ExtMove& m)
 			{ return m.value > VALUE_ZERO; });
 		}
@@ -170,7 +170,7 @@ inline void MovePicker::prepare_moves() {
 	}
 }
 
-inline Move MovePicker::pick_next() {
+Move MovePicker::pick_next() {
 	if (cur == endMoves)
 		return MOVE_NONE;
 
