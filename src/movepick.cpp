@@ -169,7 +169,30 @@ void MovePicker::score<EVASIONS>() {
           m.value = history.get(c, m);
 }
 
+int sortLimit = 10, partitionLimit = 20;
+TUNE(SetRange(0, 20), sortLimit, SetRange(10, 30), partitionLimit);
 
+inline void MovePicker::prepare_moves() {
+	if (useSort = endMoves - cur > sortLimit) {
+		ExtMove* goodPart = endMoves;
+		if (endMoves - cur > partitionLimit) {
+			ExtMove* goodPart = std::partition(cur, endMoves, [](const ExtMove& m)
+			{ return m.value > VALUE_ZERO; });
+		}
+		insertion_sort(cur, goodPart);
+	}
+}
+
+inline Move MovePicker::pick_next() {
+	if (cur == endMoves)
+		return MOVE_NONE;
+
+	if (!useSort) {
+		std::swap(*cur, *std::max_element(cur, endMoves));
+	}
+
+	return *cur++;
+}
 /// next_move() is the most important method of the MovePicker class. It returns
 /// a new pseudo legal move every time it is called, until there are no more moves
 /// left. It picks the move with the biggest value from a list of generated moves
@@ -177,171 +200,164 @@ void MovePicker::score<EVASIONS>() {
 
 Move MovePicker::next_move() {
 
-  Move move;
+	Move move;
 
-  switch (stage) {
+	switch (stage) {
 
-  case MAIN_SEARCH: case EVASION: case QSEARCH_WITH_CHECKS:
-  case QSEARCH_NO_CHECKS: case PROBCUT:
-      ++stage;
-      return ttMove;
+	case MAIN_SEARCH: case EVASION: case QSEARCH_WITH_CHECKS:
+	case QSEARCH_NO_CHECKS: case PROBCUT:
+		++stage;
+		return ttMove;
 
-  case CAPTURES_INIT:
-      endBadCaptures = cur = moves;
-      endMoves = generate<CAPTURES>(pos, cur);
-      score<CAPTURES>();
-      ++stage;
+	case CAPTURES_INIT:
+		endBadCaptures = cur = moves;
+		endMoves = generate<CAPTURES>(pos, cur);
+		score<CAPTURES>();
+		++stage;
 
-  case GOOD_CAPTURES:
-      while (cur < endMoves)
-      {
-          move = pick_best(cur++, endMoves);
-          if (move != ttMove)
-          {
-              if (pos.see_ge(move, VALUE_ZERO))
-                  return move;
+	case GOOD_CAPTURES:
+		prepare_moves();
+		while (move = pick_next())
+		{
+			if (move != ttMove)
+			{
+				if (pos.see_ge(move, VALUE_ZERO))
+					return move;
 
-              // Losing capture, move it to the beginning of the array
-              *endBadCaptures++ = move;
-          }
-      }
+				// Losing capture, move it to the beginning of the array
+				*endBadCaptures++ = move;
+			}
+		}
 
-      ++stage;
-      move = ss->killers[0];  // First killer move
-      if (    move != MOVE_NONE
-          &&  move != ttMove
-          &&  pos.pseudo_legal(move)
-          && !pos.capture(move))
-          return move;
+		++stage;
+		move = ss->killers[0];  // First killer move
+		if (move != MOVE_NONE
+			&&  move != ttMove
+			&&  pos.pseudo_legal(move)
+			&& !pos.capture(move))
+			return move;
 
-  case KILLERS:
-      ++stage;
-      move = ss->killers[1]; // Second killer move
-      if (    move != MOVE_NONE
-          &&  move != ttMove
-          &&  pos.pseudo_legal(move)
-          && !pos.capture(move))
-          return move;
+	case KILLERS:
+		++stage;
+		move = ss->killers[1]; // Second killer move
+		if (move != MOVE_NONE
+			&&  move != ttMove
+			&&  pos.pseudo_legal(move)
+			&& !pos.capture(move))
+			return move;
 
-  case COUNTERMOVE:
-      ++stage;
-      move = countermove;
-      if (    move != MOVE_NONE
-          &&  move != ttMove
-          &&  move != ss->killers[0]
-          &&  move != ss->killers[1]
-          &&  pos.pseudo_legal(move)
-          && !pos.capture(move))
-          return move;
+	case COUNTERMOVE:
+		++stage;
+		move = countermove;
+		if (move != MOVE_NONE
+			&&  move != ttMove
+			&&  move != ss->killers[0]
+			&& move != ss->killers[1]
+			&& pos.pseudo_legal(move)
+			&& !pos.capture(move))
+			return move;
 
-  case QUIET_INIT:
-      cur = endBadCaptures;
-      endMoves = generate<QUIETS>(pos, cur);
-      score<QUIETS>();
-      if (depth < 3 * ONE_PLY)
-      {
-          ExtMove* goodQuiet = std::partition(cur, endMoves, [](const ExtMove& m)
-                                             { return m.value > VALUE_ZERO; });
-          insertion_sort(cur, goodQuiet);
-      } else
-          insertion_sort(cur, endMoves);
-      ++stage;
+	case QUIET_INIT:
+		cur = endBadCaptures;
+		endMoves = generate<QUIETS>(pos, cur);
+		score<QUIETS>();
+		++stage;
 
-  case QUIET:
-      while (cur < endMoves)
-      {
-          move = *cur++;
-          if (   move != ttMove
-              && move != ss->killers[0]
-              && move != ss->killers[1]
-              && move != countermove)
-              return move;
-      }
-      ++stage;
-      cur = moves; // Point to beginning of bad captures
+	case QUIET:
+		prepare_moves();
+		while (move = pick_next())
+		{
+			if (move != ttMove
+				&& move != ss->killers[0]
+				&& move != ss->killers[1]
+				&& move != countermove)
+				return move;
+		}
+		++stage;
+		cur = moves; // Point to beginning of bad captures
 
-  case BAD_CAPTURES:
-      if (cur < endBadCaptures)
-          return *cur++;
-      break;
+	case BAD_CAPTURES:
+		if (cur < endBadCaptures)
+			return *cur++;
+		break;
 
-  case EVASIONS_INIT:
-      cur = moves;
-      endMoves = generate<EVASIONS>(pos, cur);
-      score<EVASIONS>();
-      ++stage;
+	case EVASIONS_INIT:
+		cur = moves;
+		endMoves = generate<EVASIONS>(pos, cur);
+		score<EVASIONS>();
+		++stage;
 
-  case ALL_EVASIONS:
-      while (cur < endMoves)
-      {
-          move = pick_best(cur++, endMoves);
-          if (move != ttMove)
-              return move;
-      }
-      break;
+	case ALL_EVASIONS:
+		prepare_moves();
+		while (move = pick_next())
+		{
+			if (move != ttMove)
+				return move;
+		}
+		break;
 
-  case PROBCUT_INIT:
-      cur = moves;
-      endMoves = generate<CAPTURES>(pos, cur);
-      score<CAPTURES>();
-      ++stage;
+	case PROBCUT_INIT:
+		cur = moves;
+		endMoves = generate<CAPTURES>(pos, cur);
+		score<CAPTURES>();
+		++stage;
 
-  case PROBCUT_CAPTURES:
-      while (cur < endMoves)
-      {
-          move = pick_best(cur++, endMoves);
-          if (   move != ttMove
-              && pos.see_ge(move, threshold))
-              return move;
-      }
-      break;
+	case PROBCUT_CAPTURES:
+		prepare_moves();
+		while (move = pick_next())
+		{
+			if (move != ttMove
+				&& pos.see_ge(move, threshold))
+				return move;
+		}
+		break;
 
-  case QCAPTURES_1_INIT: case QCAPTURES_2_INIT:
-      cur = moves;
-      endMoves = generate<CAPTURES>(pos, cur);
-      score<CAPTURES>();
-      ++stage;
+	case QCAPTURES_1_INIT: case QCAPTURES_2_INIT:
+		cur = moves;
+		endMoves = generate<CAPTURES>(pos, cur);
+		score<CAPTURES>();
+		++stage;
 
-  case QCAPTURES_1: case QCAPTURES_2:
-      while (cur < endMoves)
-      {
-          move = pick_best(cur++, endMoves);
-          if (move != ttMove)
-              return move;
-      }
-      if (stage == QCAPTURES_2)
-          break;
-      cur = moves;
-      endMoves = generate<QUIET_CHECKS>(pos, cur);
-      ++stage;
+	case QCAPTURES_1: case QCAPTURES_2:
+		prepare_moves();
+		while (move = pick_next())
+		{
+			if (move != ttMove)
+				return move;
+		}
+		if (stage == QCAPTURES_2)
+			break;
+		cur = moves;
+		endMoves = generate<QUIET_CHECKS>(pos, cur);
+		++stage;
 
-  case QCHECKS:
-      while (cur < endMoves)
-      {
-          move = cur++->move;
-          if (move != ttMove)
-              return move;
-      }
-      break;
+	case QCHECKS:
+		while (cur < endMoves)
+		{
+			move = *cur++;
+			if (move != ttMove)
+				return move;
+		}
+		break;
 
-  case QSEARCH_RECAPTURES:
-      cur = moves;
-      endMoves = generate<CAPTURES>(pos, cur);
-      score<CAPTURES>();
-      ++stage;
+	case QSEARCH_RECAPTURES:
+		cur = moves;
+		endMoves = generate<CAPTURES>(pos, cur);
+		score<CAPTURES>();
+		++stage;
 
-  case QRECAPTURES:
-      while (cur < endMoves)
-      {
-          move = pick_best(cur++, endMoves);
-          if (to_sq(move) == recaptureSquare)
-              return move;
-      }
-      break;
+	case QRECAPTURES:
+		prepare_moves();
+		while (move = pick_next())
+		{
+			if (to_sq(move) == recaptureSquare)
+				return move;
+		}
+		break;
 
-  default:
-      assert(false);
-  }
+	default:
+		assert(false);
+	}
 
-  return MOVE_NONE;
+	return MOVE_NONE;
 }

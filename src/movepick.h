@@ -118,6 +118,9 @@ private:
   int stage;
   ExtMove *cur, *endMoves, *endBadCaptures;
   ExtMove moves[MAX_MOVES];
+  void prepare_moves();
+  Move pick_next();
+  bool useSort;
 };
 
 #endif // #ifndef MOVEPICK_H_INCLUDED
