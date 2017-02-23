@@ -118,9 +118,9 @@ private:
   int stage;
   ExtMove *cur, *endMoves, *endBadCaptures;
   ExtMove moves[MAX_MOVES];
-  template<bool Sort = false> void prepare_moves();
-  template<bool Sort = false> Move pick_next();
-  //bool useSort;
+  template<bool excludeTT = true> void prepare_moves();
+  Move pick_next();
+  bool sorted;
 };
 
 #endif // #ifndef MOVEPICK_H_INCLUDED

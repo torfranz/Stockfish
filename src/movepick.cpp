@@ -159,46 +159,37 @@ void MovePicker::score<EVASIONS>() {
           m.value = history.get(c, m);
 }
 
-template<>
-void MovePicker::prepare_moves<false>() {
-	// exclude ttMove
-	ExtMove* ttMovePos;
-	if ((ttMovePos = std::find(cur, endMoves, ttMove)) < endMoves) {
-		std::swap(*cur, *ttMovePos);
-		cur++;
+template<bool excludeTT>
+void MovePicker::prepare_moves() {
+	if (cur == endMoves) { return; }
+
+	if (excludeTT) {
+		ExtMove* ttMovePos = std::find(cur, endMoves, ttMove);
+		if (ttMovePos < endMoves && ttMovePos >= cur) {
+			std::swap(*cur, *ttMovePos);
+			cur++;
+		}
 	}
-}
 
-template<>
-void MovePicker::prepare_moves<true>() {
-	prepare_moves<false>();
-
-	//if (useSort = sort /*endMoves - cur > 5*/) {
+	if (sorted = endMoves - cur > 5) {
 		ExtMove* sortEnd = endMoves;
-		//if(endMoves - cur > 20){
-		if (depth < 3 * ONE_PLY) {
+		if(endMoves - cur > 10){
 			sortEnd = std::partition(cur, endMoves, [](const ExtMove& m)
 			{ return m.value > VALUE_ZERO; });
 		}
 		insertion_sort(cur, sortEnd);
-	//}
+	}
+
 }
 
-
-template<>
-Move MovePicker::pick_next<true>() {
+//
+Move MovePicker::pick_next() {
 	if (cur == endMoves)
 		return MOVE_NONE;
 
-	return *cur++;
-}
-
-template<>
-Move MovePicker::pick_next<false>() {
-	if (cur == endMoves)
-		return MOVE_NONE;
-
-	std::swap(*cur, *std::max_element(cur, endMoves));
+	if (!sorted) {
+		std::swap(*cur, *std::max_element(cur, endMoves));
+	}
 	return *cur++;
 }
 
@@ -222,17 +213,17 @@ Move MovePicker::next_move() {
       endBadCaptures = cur = moves;
       endMoves = generate<CAPTURES>(pos, cur);
       score<CAPTURES>();
-      ++stage;
+	  prepare_moves();
+	  ++stage;
 
   case GOOD_CAPTURES:
-	  prepare_moves();
 	  while (move = pick_next())
-	  {
-		if (pos.see_ge(move, VALUE_ZERO))
-			return move;
+	  {		  
+			if (pos.see_ge(move, VALUE_ZERO))
+				return move;
 
-		// Losing capture, move it to the beginning of the array
-		*endBadCaptures++ = move;
+			// Losing capture, move it to the beginning of the array
+			*endBadCaptures++ = move;
 	  }
 
 	  ++stage;
@@ -267,10 +258,11 @@ Move MovePicker::next_move() {
 	  cur = endBadCaptures;
 	  endMoves = generate<QUIETS>(pos, cur);
 	  score<QUIETS>();
+	  prepare_moves();
 	  ++stage;
 
   case QUIET:
-	  prepare_moves<true>();
+	  
 	  while (move = pick_next())
 	  {
 		  if (move != ss->killers[0]
@@ -290,12 +282,12 @@ Move MovePicker::next_move() {
 	  cur = moves;
 	  endMoves = generate<EVASIONS>(pos, cur);
 	  score<EVASIONS>();
+	  prepare_moves();
 	  ++stage;
 
   case ALL_EVASIONS:
-	  prepare_moves();
-	  while (move = pick_next())
-	  {
+	  move = pick_next();
+	  if (move) {
 		  return move;
 	  }
 	  break;
@@ -304,10 +296,11 @@ Move MovePicker::next_move() {
 	  cur = moves;
 	  endMoves = generate<CAPTURES>(pos, cur);
 	  score<CAPTURES>();
+	  prepare_moves();
 	  ++stage;
 
   case PROBCUT_CAPTURES:
-	  prepare_moves();
+	  
 	  while (move = pick_next())
 	  {
 		  if (pos.see_ge(move, threshold))
@@ -319,14 +312,15 @@ Move MovePicker::next_move() {
 	  cur = moves;
 	  endMoves = generate<CAPTURES>(pos, cur);
 	  score<CAPTURES>();
+	  prepare_moves();
 	  ++stage;
 
   case QCAPTURES_1: case QCAPTURES_2:
-	  prepare_moves();
-	  while (move = pick_next())
-	  {
+	  move = pick_next();
+	  if (move) {
 		  return move;
 	  }
+	  	  
 	  if (stage == QCAPTURES_2)
 		  break;
 	  cur = moves;
@@ -336,7 +330,9 @@ Move MovePicker::next_move() {
   case QCHECKS:
 	  while (cur < endMoves)
 	  {
-		  return *cur++;
+		  move = cur++->move;
+		  if (move != ttMove)
+			  return move;
 	  }
 	  break;
 
@@ -344,10 +340,11 @@ Move MovePicker::next_move() {
 	  cur = moves;
 	  endMoves = generate<CAPTURES>(pos, cur);
 	  score<CAPTURES>();
+	  prepare_moves<false>();
 	  ++stage;
 
   case QRECAPTURES:
-	  prepare_moves();
+	  
 	  while (move = pick_next())
 	  {
 		  if (to_sq(move) == recaptureSquare)
