@@ -159,25 +159,46 @@ void MovePicker::score<EVASIONS>() {
           m.value = history.get(c, m);
 }
 
-void MovePicker::prepare_moves() {
-	if (useSort = endMoves - cur > 5) {
-		ExtMove* goodPart = endMoves;
-		if (depth < 3 * ONE_PLY) {
-			ExtMove* goodPart = std::partition(cur, endMoves, [](const ExtMove& m)
-			{ return m.value > VALUE_ZERO; });
-		}
-		insertion_sort(cur, goodPart);
+template<>
+void MovePicker::prepare_moves<false>() {
+	// exclude ttMove
+	ExtMove* ttMovePos;
+	if ((ttMovePos = std::find(cur, endMoves, ttMove)) < endMoves) {
+		std::swap(*cur, *ttMovePos);
+		cur++;
 	}
 }
 
-Move MovePicker::pick_next() {
+template<>
+void MovePicker::prepare_moves<true>() {
+	prepare_moves<false>();
+
+	//if (useSort = sort /*endMoves - cur > 5*/) {
+		ExtMove* sortEnd = endMoves;
+		//if(endMoves - cur > 20){
+		if (depth < 3 * ONE_PLY) {
+			sortEnd = std::partition(cur, endMoves, [](const ExtMove& m)
+			{ return m.value > VALUE_ZERO; });
+		}
+		insertion_sort(cur, sortEnd);
+	//}
+}
+
+
+template<>
+Move MovePicker::pick_next<true>() {
 	if (cur == endMoves)
 		return MOVE_NONE;
 
-	if (!useSort) {
-		std::swap(*cur, *std::max_element(cur, endMoves));
-	}
+	return *cur++;
+}
 
+template<>
+Move MovePicker::pick_next<false>() {
+	if (cur == endMoves)
+		return MOVE_NONE;
+
+	std::swap(*cur, *std::max_element(cur, endMoves));
 	return *cur++;
 }
 
@@ -207,14 +228,11 @@ Move MovePicker::next_move() {
 	  prepare_moves();
 	  while (move = pick_next())
 	  {
-		  if (move != ttMove)
-		  {
-			  if (pos.see_ge(move, VALUE_ZERO))
-				  return move;
+		if (pos.see_ge(move, VALUE_ZERO))
+			return move;
 
-			  // Losing capture, move it to the beginning of the array
-			  *endBadCaptures++ = move;
-		  }
+		// Losing capture, move it to the beginning of the array
+		*endBadCaptures++ = move;
 	  }
 
 	  ++stage;
@@ -252,11 +270,10 @@ Move MovePicker::next_move() {
 	  ++stage;
 
   case QUIET:
-	  prepare_moves();
+	  prepare_moves<true>();
 	  while (move = pick_next())
 	  {
-		  if (move != ttMove
-			  && move != ss->killers[0]
+		  if (move != ss->killers[0]
 			  && move != ss->killers[1]
 			  && move != countermove)
 			  return move;
@@ -279,8 +296,7 @@ Move MovePicker::next_move() {
 	  prepare_moves();
 	  while (move = pick_next())
 	  {
-		  if (move != ttMove)
-			  return move;
+		  return move;
 	  }
 	  break;
 
@@ -294,8 +310,7 @@ Move MovePicker::next_move() {
 	  prepare_moves();
 	  while (move = pick_next())
 	  {
-		  if (move != ttMove
-			  && pos.see_ge(move, threshold))
+		  if (pos.see_ge(move, threshold))
 			  return move;
 	  }
 	  break;
@@ -310,8 +325,7 @@ Move MovePicker::next_move() {
 	  prepare_moves();
 	  while (move = pick_next())
 	  {
-		  if (move != ttMove)
-			  return move;
+		  return move;
 	  }
 	  if (stage == QCAPTURES_2)
 		  break;
@@ -322,9 +336,7 @@ Move MovePicker::next_move() {
   case QCHECKS:
 	  while (cur < endMoves)
 	  {
-		  move = *cur++;
-		  if (move != ttMove)
-			  return move;
+		  return *cur++;
 	  }
 	  break;
 
