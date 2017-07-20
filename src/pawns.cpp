@@ -157,11 +157,10 @@ namespace {
         // full attack info to evaluate them. Include also not passed pawns
         // which could become passed after one or two pawn pushes when are
         // not attacked more times than defended.
-        if (   !(stoppers ^ lever ^ leverPush)
-            && !(ourPawns & forward_file_bb(Us, s))
-            && popcount(supported) >= popcount(lever)
-            && popcount(phalanx)   >= popcount(leverPush))
-            e->passedPawns[Us] |= s;
+		if (!stoppers
+			&& !(ourPawns & forward_file_bb(Us, s))
+			&& !(theirPawns & adjacent_files_bb(f) & forward_ranks_bb(Us, s)))
+			e->passedPawns[Us] |= s;
 
         else if (   stoppers == SquareBB[s + Up]
                  && relative_rank(Us, s) >= RANK_5)
