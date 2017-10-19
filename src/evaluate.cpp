@@ -213,7 +213,7 @@ namespace {
   // Assorted bonuses and penalties used by evaluation
   const Score MinorBehindPawn     = S( 16,  0);
   const Score BishopPawns         = S(  8, 12);
-  const Score LongRangedBishop    = S( 22,  0);
+  const Value LongRangedBishop    = V( 11);
   const Score RookOnPawn          = S(  8, 24);
   const Score TrappedRook         = S( 92,  0);
   const Score WeakQueen           = S( 50, 10);
@@ -353,9 +353,8 @@ namespace {
                 // Penalty for pawns on the same color square as the bishop
                 score -= BishopPawns * pe->pawns_on_same_color_squares(Us, s);
 
-                // Bonus for bishop on a long diagonal which can "see" at least one center square
-                if ((Center & (attacks_bb<BISHOP>(s, pos.pieces(PAWN)) | s)))
-                    score += LongRangedBishop;
+                // Bonus for bishop on a long diagonal which can "see" center squares
+                score += make_score(popcount(Center & (attacks_bb<BISHOP>(s, pos.pieces(PAWN)) | s)) * LongRangedBishop, 0);
             }
 
             // An important Chess960 pattern: A cornered bishop blocked by a friendly
