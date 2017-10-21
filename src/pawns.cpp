@@ -98,6 +98,8 @@ namespace {
     const Square Up    = (Us == WHITE ? NORTH      : SOUTH);
     const Square Right = (Us == WHITE ? NORTH_EAST : SOUTH_WEST);
     const Square Left  = (Us == WHITE ? NORTH_WEST : SOUTH_EAST);
+	const Square InvRight = (Them == BLACK ? SOUTH_WEST : NORTH_EAST);
+	const Square InvLeft = (Them == BLACK ? SOUTH_EAST : NORTH_WEST);
 
     Bitboard b, neighbours, stoppers, doubled, supported, phalanx;
     Bitboard lever, leverPush;
@@ -108,8 +110,10 @@ namespace {
 
     Bitboard ourPawns   = pos.pieces(  Us, PAWN);
     Bitboard theirPawns = pos.pieces(Them, PAWN);
+	Bitboard theirAttacks = shift<InvRight>(theirPawns) | shift<InvLeft>(theirPawns);
 
     e->passedPawns[Us] = e->pawnAttacksSpan[Us] = e->weakUnopposed[Us] = 0;
+	e->semiblockedPawns[Us] = 0;
     e->semiopenFiles[Us] = 0xFF;
     e->kingSquares[Us]   = SQ_NONE;
     e->pawnAttacks[Us]   = shift<Right>(ourPawns) | shift<Left>(ourPawns);
@@ -135,6 +139,9 @@ namespace {
         neighbours = ourPawns   & adjacent_files_bb(f);
         phalanx    = neighbours & rank_bb(s);
         supported  = neighbours & rank_bb(s - Up);
+
+		if ((theirPawns & (s + Up)) || (theirAttacks & (s + Up)))
+			e->semiblockedPawns[Us]++;
 
         // A pawn is backward when it is behind all pawns of the same color on the
         // adjacent files and cannot be safely advanced.
