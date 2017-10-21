@@ -789,7 +789,7 @@ namespace {
     // types of endgames, and use a lower scale for those.
     if (sf == SCALE_FACTOR_NORMAL || sf == SCALE_FACTOR_ONEPAWN)
     {
-        if (pos.opposite_bishops())
+		if (pos.opposite_bishops())
         {
             // Endgame with opposite-colored bishops and no other pieces (ignoring pawns)
             // is almost a draw, in case of KBP vs KB, it is even more a draw.
@@ -803,7 +803,7 @@ namespace {
         }
 		// Positions where basically all pawns are blocked and where there are no open files (even with material disbalance) 
 		// or at max. one open file (with same material) are drawish
-		else if (	(pe->open_files() < 2 || (pos.non_pawn_material(WHITE) != pos.non_pawn_material(BLACK) && pe->open_files() == 0))
+		else if (	(pe->open_files() < 2)
 				 && (pe->semiblocked_pawns(WHITE) + pe->semiblocked_pawns(BLACK)) == pos.count<PAWN>()) {
 			return ScaleFactor(48);
 		}
