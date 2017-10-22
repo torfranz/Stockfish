@@ -781,6 +781,12 @@ namespace {
 
   // evaluate_scale_factor() computes the scale factor for the winning side
 
+  int maxOpenFiles = 1;
+  TUNE(SetRange(0, 1), maxOpenFiles);
+
+  int scaleFactor = 48;
+  TUNE(SetRange(10, 64), scaleFactor);
+
   template<Tracing T>
   ScaleFactor Evaluation<T>::evaluate_scale_factor(Value eg) {
 
@@ -804,9 +810,9 @@ namespace {
             return ScaleFactor(46);
         }
 		// Positions where basically all pawns are blocked and where there are max one open file are drawish
-		else if (	pe->open_files() < 2
+		else if (	pe->open_files() <= maxOpenFiles
 				 && pe->semiblocked_pawns() == pos.count<PAWN>()) {
-			return ScaleFactor(48);
+			return ScaleFactor(scaleFactor);
 		}
         // Endings where weaker side can place his king in front of the opponent's
         // pawns are drawish.
