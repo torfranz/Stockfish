@@ -813,7 +813,7 @@ namespace {
                  && !pos.pawn_passed(~strongSide, pos.square<KING>(~strongSide)))
             return ScaleFactor(37 + 7 * pos.count<PAWN>(strongSide));
     }
-
+	
     return sf;
   }
 
