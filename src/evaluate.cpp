@@ -781,40 +781,81 @@ namespace {
     return make_score(0, v);
   }
 
+  // taken from https://chessprogramming.wikispaces.com/King+Pattern
+  bool squares_Are_Connected(Bitboard sq1, Bitboard sq2, Bitboard path)
+  {
+	  // With bitboard sq1, do an 8-way flood fill, masking off bits not in
+	  // path at every step. Stop when fill reaches any set bit in sq2, or
+	  // fill cannot progress any further
+
+	  if (!(sq1 &= path) || !(sq2 &= path)) return false;
+	  // Drop bits not in path
+	  // Early exit if sq1 or sq2 not on any path
+
+	  while (!(sq1 & sq2))
+	  {
+		  Bitboard temp = sq1;
+		  sq1 |= shift<EAST>(sq1) | shift<WEST>(sq1);
+		  sq1 |= shift<NORTH>(sq1) | shift<SOUTH>(sq1);
+		  sq1 &= path;                           // Drop bits not in path
+		  if (sq1 == temp) return false;         // Fill has stopped
+	  }
+	  return true;                              // Found a good path
+  }
+
+  // check if our king can reach the other king just considering the current pawn structure
+  bool kings_reachable(const Position& pos) {
+
+	  Color Us = pos.side_to_move();
+	  Color Them = ~Us;
+	  Bitboard theirPawnsAttacks = 0;
+	  Bitboard theirPawns = pos.pieces(Them, PieceType::PAWN);
+	  while (theirPawns)
+		  theirPawnsAttacks |= PawnAttacks[Them][pop_lsb(&theirPawns)];
+
+	  return squares_Are_Connected(pos.pieces(Us, PieceType::KING), pos.pieces(Them, PieceType::KING), pos.pieces(PieceType::KING) | ~(pos.pieces(PieceType::PAWN) | theirPawnsAttacks));
+  }
 
   // evaluate_scale_factor() computes the scale factor for the winning side
 
   template<Tracing T>
   ScaleFactor Evaluation<T>::evaluate_scale_factor(Value eg) {
 
-    Color strongSide = eg > VALUE_DRAW ? WHITE : BLACK;
-    ScaleFactor sf = me->scale_factor(pos, strongSide);
+	  Color strongSide = eg > VALUE_DRAW ? WHITE : BLACK;
+	  ScaleFactor sf = me->scale_factor(pos, strongSide);
 
-    // If we don't already have an unusual scale factor, check for certain
-    // types of endgames, and use a lower scale for those.
-    if (sf == SCALE_FACTOR_NORMAL || sf == SCALE_FACTOR_ONEPAWN)
-    {
-        if (pos.opposite_bishops())
-        {
-            // Endgame with opposite-colored bishops and no other pieces (ignoring pawns)
-            // is almost a draw, in case of KBP vs KB, it is even more a draw.
-            if (   pos.non_pawn_material(WHITE) == BishopValueMg
-                && pos.non_pawn_material(BLACK) == BishopValueMg)
-                return more_than_one(pos.pieces(PAWN)) ? ScaleFactor(31) : ScaleFactor(9);
+	  // If we don't already have an unusual scale factor, check for certain
+	  // types of endgames, and use a lower scale for those.
+	  if (sf == SCALE_FACTOR_NORMAL || sf == SCALE_FACTOR_ONEPAWN)
+	  {
+		  if (pos.opposite_bishops())
+		  {
+			  // Endgame with opposite-colored bishops and no other pieces (ignoring pawns)
+			  // is almost a draw, in case of KBP vs KB, it is even more a draw.
+			  if (pos.non_pawn_material(WHITE) == BishopValueMg
+				  && pos.non_pawn_material(BLACK) == BishopValueMg)
+				  return more_than_one(pos.pieces(PAWN)) ? ScaleFactor(31) : ScaleFactor(9);
 
-            // Endgame with opposite-colored bishops, but also other pieces. Still
-            // a bit drawish, but not as drawish as with only the two bishops.
-            return ScaleFactor(46);
-        }
-        // Endings where weaker side can place his king in front of the opponent's
-        // pawns are drawish.
-        else if (    abs(eg) <= BishopValueEg
-                 &&  pos.count<PAWN>(strongSide) <= 2
-                 && !pos.pawn_passed(~strongSide, pos.square<KING>(~strongSide)))
-            return ScaleFactor(37 + 7 * pos.count<PAWN>(strongSide));
-    }
+			  // Endgame with opposite-colored bishops, but also other pieces. Still
+			  // a bit drawish, but not as drawish as with only the two bishops.
+			  return ScaleFactor(46);
+		  }
+		  // if our kings has no way (through own and enemy pawns) to reach other king its a bit drawish 
+		  // (given there are not that many other pieces)
+		  else if (pos.non_pawn_material(WHITE) < BishopValueMg + KnightValueMg + 1
+			  && pos.non_pawn_material(BLACK) < BishopValueMg + KnightValueMg + 1
+			  && !kings_reachable(pos))
+			  return ScaleFactor(pe->semiblocked_pawns() == pos.count<PAWN>() ? 32 : 48);
 
-    return sf;
+		  // Endings where weaker side can place his king in front of the opponent's
+		  // pawns are drawish.
+		  else if (abs(eg) <= BishopValueEg
+			  &&  pos.count<PAWN>(strongSide) <= 2
+			  && !pos.pawn_passed(~strongSide, pos.square<KING>(~strongSide)))
+			  return ScaleFactor(37 + 7 * pos.count<PAWN>(strongSide));
+	  }
+
+	  return sf;
   }
 
 
