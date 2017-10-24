@@ -852,7 +852,7 @@ namespace {
 		  // (given there are no other pieces except king and pawns)
 		  else if (pos.non_pawn_material() == 0
 			  && !kings_reachable(pos))
-			  return ScaleFactor(32);
+			  return ScaleFactor(46);
 	  }
 
 	  return sf;
