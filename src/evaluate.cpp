@@ -781,6 +781,40 @@ namespace {
     return make_score(0, v);
   }
 
+  // taken from https://chessprogramming.wikispaces.com/King+Pattern
+  bool squares_Are_Connected(Bitboard sq1, Bitboard sq2, Bitboard path)
+  {
+	  // With bitboard sq1, do an 8-way flood fill, masking off bits not in
+	  // path at every step. Stop when fill reaches any set bit in sq2, or
+	  // fill cannot progress any further
+
+	  if (!(sq1 &= path) || !(sq2 &= path)) return false;
+	  // Drop bits not in path
+	  // Early exit if sq1 or sq2 not on any path
+
+	  while (!(sq1 & sq2))
+	  {
+		  Bitboard temp = sq1;
+		  sq1 |= shift<EAST>(sq1) | shift<WEST>(sq1);
+		  sq1 |= shift<NORTH>(sq1) | shift<SOUTH>(sq1);
+		  sq1 &= path;                           // Drop bits not in path
+		  if (sq1 == temp) return false;         // Fill has stopped
+	  }
+	  return true;                              // Found a good path
+  }
+
+  // check if our king can reach the other king just considering the current pawn structure
+  bool kings_reachable(const Position& pos) {
+
+	  Color Us = pos.side_to_move();
+	  Color Them = ~Us;
+	  Bitboard theirPawnsAttacks = 0;
+	  Bitboard theirPawns = pos.pieces(Them, PieceType::PAWN);
+	  while (theirPawns)
+		  theirPawnsAttacks |= PawnAttacks[Them][pop_lsb(&theirPawns)];
+
+	  return squares_Are_Connected(pos.pieces(Us, PieceType::KING), pos.pieces(Them, PieceType::KING), pos.pieces(PieceType::KING) | ~(pos.pieces(PieceType::PAWN) | theirPawnsAttacks));
+  }
 
   // evaluate_scale_factor() computes the scale factor for the winning side
 
@@ -806,12 +840,7 @@ namespace {
             // a bit drawish, but not as drawish as with only the two bishops.
             return ScaleFactor(46);
         }
-		// Positions where basically all pawns are blocked and where there are max one open file are drawish
-		else if (	pe->open_files() < 2
-				 && pe->semiblocked_pawns() == pos.count<PAWN>()) {
-			return ScaleFactor(48);
-		}
-        // Endings where weaker side can place his king in front of the opponent's
+		// Endings where weaker side can place his king in front of the opponent's
         // pawns are drawish.
         else if (    abs(eg) <= BishopValueEg
                  &&  pos.count<PAWN>(strongSide) <= 2
