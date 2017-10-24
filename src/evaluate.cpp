@@ -781,6 +781,7 @@ namespace {
     return make_score(0, v);
   }
 
+  // taken from https://chessprogramming.wikispaces.com/King+Pattern
   bool squares_Are_Connected(Bitboard sq1, Bitboard sq2, Bitboard path)
   {
 	  // With bitboard sq1, do an 8-way flood fill, masking off bits not in
@@ -802,6 +803,7 @@ namespace {
 	  return true;                              // Found a good path
   }
 
+  // check if our king can reach the other king just considering the current pawn structure
   bool kings_reachable(const Position& pos) {
 
 	  Color Us = pos.side_to_move();
@@ -811,9 +813,7 @@ namespace {
 	  while (theirPawns)
 		  theirPawnsAttacks |= PawnAttacks[Them][pop_lsb(&theirPawns)];
 	  
-	  Bitboard availableToKings = pos.pieces(PieceType::KING) | ~(pos.pieces(PieceType::PAWN) | theirPawnsAttacks);
-
-	  return squares_Are_Connected(pos.pieces(Us, PieceType::KING), pos.pieces(Them, PieceType::KING), availableToKings);
+	  return squares_Are_Connected(pos.pieces(Us, PieceType::KING), pos.pieces(Them, PieceType::KING), pos.pieces(PieceType::KING) | ~(pos.pieces(PieceType::PAWN) | theirPawnsAttacks));
   }
 
   // evaluate_scale_factor() computes the scale factor for the winning side
@@ -841,8 +841,8 @@ namespace {
             return ScaleFactor(46);
         }
 		// if our kings has no way (through own and enemy pawns) to reach other king its a bit drawish
-		else if (	!kings_reachable(pos)) {
-			return ScaleFactor(32);
+		else if (!kings_reachable(pos)) {
+			return ScaleFactor(48);
 		}
         // Endings where weaker side can place his king in front of the opponent's
         // pawns are drawish.
