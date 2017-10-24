@@ -628,6 +628,7 @@ namespace {
   }
 
 
+
   // evaluate_passed_pawns() evaluates the passed pawns and candidate passed
   // pawns of the given color.
 
@@ -815,7 +816,7 @@ namespace {
 	  
 	  return squares_Are_Connected(pos.pieces(Us, PieceType::KING), pos.pieces(Them, PieceType::KING), pos.pieces(PieceType::KING) | ~(pos.pieces(PieceType::PAWN) | theirPawnsAttacks));
   }
-
+  
   // evaluate_scale_factor() computes the scale factor for the winning side
 
   template<Tracing T>
@@ -840,10 +841,13 @@ namespace {
             // a bit drawish, but not as drawish as with only the two bishops.
             return ScaleFactor(46);
         }
-		// if our kings has no way (through own and enemy pawns) to reach other king its a bit drawish
-		else if (!kings_reachable(pos)) {
-			return ScaleFactor(48);
-		}
+		// if our kings has no way (through own and enemy pawns) to reach other king its a bit drawish 
+		// (given there are not that many other pieces)
+		else if (   pos.non_pawn_material(WHITE) < BishopValueMg + KnightValueMg
+			     && pos.non_pawn_material(BLACK) < BishopValueMg + KnightValueMg
+			     && !kings_reachable(pos))
+			return ScaleFactor(32);
+		
         // Endings where weaker side can place his king in front of the opponent's
         // pawns are drawish.
         else if (    abs(eg) <= BishopValueEg
@@ -912,7 +916,7 @@ namespace {
         score +=  evaluate_space<WHITE>()
                 - evaluate_space<BLACK>();
 
-    score += evaluate_initiative(eg_value(score));
+	score += evaluate_initiative(eg_value(score));
 
     // Interpolate between a middlegame and a (scaled by 'sf') endgame score
     ScaleFactor sf = evaluate_scale_factor(eg_value(score));
