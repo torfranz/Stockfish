@@ -776,12 +776,46 @@ namespace {
     return make_score(0, v);
   }
 
+  bool squares_Are_Connected(Bitboard sq1, Bitboard sq2, Bitboard path)
+  {
+	  // With bitboard sq1, do an 8-way flood fill, masking off bits not in
+	  // path at every step. Stop when fill reaches any set bit in sq2, or
+	  // fill cannot progress any further
+
+	  if (!(sq1 &= path) || !(sq2 &= path)) return false;
+	  // Drop bits not in path
+	  // Early exit if sq1 or sq2 not on any path
+
+	  while (!(sq1 & sq2))
+	  {
+		  Bitboard temp = sq1;
+		  sq1 |= shift<EAST>(sq1) | shift<WEST>(sq1);
+		  sq1 |= shift<NORTH>(sq1) | shift<SOUTH>(sq1);
+		  sq1 &= path;                           // Drop bits not in path
+		  if (sq1 == temp) return false;         // Fill has stopped
+	  }
+	  return true;                              // Found a good path
+  }
+
+  bool kings_reachable(const Position& pos) {
+
+	  Color Us = pos.side_to_move();
+	  Color Them = ~Us;
+	  Bitboard theirPawnsAttacks = 0;
+	  Bitboard theirPawns = pos.pieces(Them, PieceType::PAWN);
+	  while (theirPawns)
+		  theirPawnsAttacks |= PawnAttacks[Them][pop_lsb(&theirPawns)];
+	  
+	  Bitboard availableToKings = pos.pieces(PieceType::KING) | ~(pos.pieces(PieceType::PAWN) | theirPawnsAttacks);
+
+	  return squares_Are_Connected(pos.pieces(Us, PieceType::KING), pos.pieces(Them, PieceType::KING), availableToKings);
+  }
 
   // evaluate_scale_factor() computes the scale factor for the winning side
 
   template<Tracing T>
   ScaleFactor Evaluation<T>::evaluate_scale_factor(Value eg) {
-
+	  
     Color strongSide = eg > VALUE_DRAW ? WHITE : BLACK;
     ScaleFactor sf = me->scale_factor(pos, strongSide);
 
@@ -801,10 +835,9 @@ namespace {
             // a bit drawish, but not as drawish as with only the two bishops.
             return ScaleFactor(46);
         }
-		// Positions where basically all pawns are blocked and where there are max one open file are drawish
-		else if (	pe->open_files() < 2
-				 && pe->semiblocked_pawns() == pos.count<PAWN>()) {
-			return ScaleFactor(48);
+		// if our kings has no way (through own and enemy pawns) to reach other king its a bit drawish
+		else if (	!kings_reachable(pos)) {
+			return ScaleFactor(32);
 		}
         // Endings where weaker side can place his king in front of the opponent's
         // pawns are drawish.
