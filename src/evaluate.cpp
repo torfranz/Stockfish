@@ -840,11 +840,10 @@ namespace {
             // a bit drawish, but not as drawish as with only the two bishops.
             return ScaleFactor(46);
         }
-		// Positions where basically all pawns are blocked and where there are max one open file are drawish
-		else if (	pe->semiblocked_pawns() == pos.count<PAWN>()
-				 && !kings_reachable(pos)) {
-			return ScaleFactor(44);
-		}
+		// Positions where basically all pawns are blocked and where kings can't find each other are drawish
+		else if (pe->semiblocked_pawns() == pos.count<PAWN>()
+			&& !kings_reachable(pos))
+			return ScaleFactor(48);
         // Endings where weaker side can place his king in front of the opponent's
         // pawns are drawish.
         else if (    abs(eg) <= BishopValueEg
