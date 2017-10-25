@@ -821,41 +821,39 @@ namespace {
   template<Tracing T>
   ScaleFactor Evaluation<T>::evaluate_scale_factor(Value eg) {
 
-	  Color strongSide = eg > VALUE_DRAW ? WHITE : BLACK;
-	  ScaleFactor sf = me->scale_factor(pos, strongSide);
+    Color strongSide = eg > VALUE_DRAW ? WHITE : BLACK;
+    ScaleFactor sf = me->scale_factor(pos, strongSide);
 
-	  // If we don't already have an unusual scale factor, check for certain
-	  // types of endgames, and use a lower scale for those.
-	  if (sf == SCALE_FACTOR_NORMAL || sf == SCALE_FACTOR_ONEPAWN)
-	  {
-		  if (pos.opposite_bishops())
-		  {
-			  // Endgame with opposite-colored bishops and no other pieces (ignoring pawns)
-			  // is almost a draw, in case of KBP vs KB, it is even more a draw.
-			  if (pos.non_pawn_material(WHITE) == BishopValueMg
-				  && pos.non_pawn_material(BLACK) == BishopValueMg)
-				  return more_than_one(pos.pieces(PAWN)) ? ScaleFactor(31) : ScaleFactor(9);
+    // If we don't already have an unusual scale factor, check for certain
+    // types of endgames, and use a lower scale for those.
+    if (sf == SCALE_FACTOR_NORMAL || sf == SCALE_FACTOR_ONEPAWN)
+    {
+		if (pos.opposite_bishops())
+        {
+            // Endgame with opposite-colored bishops and no other pieces (ignoring pawns)
+            // is almost a draw, in case of KBP vs KB, it is even more a draw.
+            if (   pos.non_pawn_material(WHITE) == BishopValueMg
+                && pos.non_pawn_material(BLACK) == BishopValueMg)
+                return more_than_one(pos.pieces(PAWN)) ? ScaleFactor(31) : ScaleFactor(9);
 
-			  // Endgame with opposite-colored bishops, but also other pieces. Still
-			  // a bit drawish, but not as drawish as with only the two bishops.
-			  return ScaleFactor(46);
-		  }
+            // Endgame with opposite-colored bishops, but also other pieces. Still
+            // a bit drawish, but not as drawish as with only the two bishops.
+            return ScaleFactor(46);
+        }
+		// Positions where basically all pawns are blocked and where there are max one open file are drawish
+		else if (	pe->semiblocked_pawns() == pos.count<PAWN>()
+				 && !kings_reachable(pos)) {
+			return ScaleFactor(44);
+		}
+        // Endings where weaker side can place his king in front of the opponent's
+        // pawns are drawish.
+        else if (    abs(eg) <= BishopValueEg
+                 &&  pos.count<PAWN>(strongSide) <= 2
+                 && !pos.pawn_passed(~strongSide, pos.square<KING>(~strongSide)))
+            return ScaleFactor(37 + 7 * pos.count<PAWN>(strongSide));
+    }
 
-		  // Endings where weaker side can place his king in front of the opponent's
-		  // pawns are drawish.
-		  else if (abs(eg) <= BishopValueEg
-			  &&  pos.count<PAWN>(strongSide) <= 2
-			  && !pos.pawn_passed(~strongSide, pos.square<KING>(~strongSide)))
-			  return ScaleFactor(37 + 7 * pos.count<PAWN>(strongSide));
-
-		  // if our kings has no way (through own and enemy pawns) to reach other king its a bit drawish 
-		  // (given there are no other pieces except king and pawns)
-		  else if (pos.non_pawn_material() == 0
-			  && !kings_reachable(pos))
-			  return ScaleFactor(46);
-	  }
-
-	  return sf;
+    return sf;
   }
 
 
