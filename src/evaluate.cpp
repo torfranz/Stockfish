@@ -842,7 +842,7 @@ namespace {
         }
 		// Positions where basically all pawns are blocked and where kings can't find each other are drawish
 		else if (pe->semiblocked_pawns() == pos.count<PAWN>()
-			&& !kings_reachable(pos))
+			&& (!kings_reachable(pos) || pe->open_files() <=1))
 			return ScaleFactor(48);
         // Endings where weaker side can place his king in front of the opponent's
         // pawns are drawish.
