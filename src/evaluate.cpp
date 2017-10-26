@@ -101,6 +101,7 @@ namespace {
     template<Color Us> Score evaluate_space();
     template<Color Us, PieceType Pt> Score evaluate_pieces();
     ScaleFactor evaluate_scale_factor(Value eg);
+	ScaleFactor evaluate_openess();
     Score evaluate_initiative(Value eg);
 
     // Data members
@@ -840,7 +841,7 @@ namespace {
             // a bit drawish, but not as drawish as with only the two bishops.
             return ScaleFactor(46);
         }
-        // Endings where weaker side can place his king in front of the opponent's
+		// Endings where weaker side can place his king in front of the opponent's
         // pawns are drawish.
         else if (    abs(eg) <= BishopValueEg
                  &&  pos.count<PAWN>(strongSide) <= 2
@@ -851,6 +852,12 @@ namespace {
     return sf;
   }
 
+  template<Tracing T>
+  ScaleFactor Evaluation<T>::evaluate_openess() {
+	  return !kings_reachable(pos)
+				? ScaleFactor(56) 
+				: SCALE_FACTOR_NORMAL;
+  }
 
   // value() is the main function of the class. It computes the various parts of
   // the evaluation and returns the value of the position from the point of view
@@ -909,6 +916,10 @@ namespace {
                 - evaluate_space<BLACK>();
 
     score += evaluate_initiative(eg_value(score));
+
+	// scale down values if position is slightly closed...
+	ScaleFactor openess = evaluate_openess();
+	score = make_score(mg_value(score) * openess / SCALE_FACTOR_NORMAL, eg_value(score) * openess / SCALE_FACTOR_NORMAL);
 
     // Interpolate between a middlegame and a (scaled by 'sf') endgame score
     ScaleFactor sf = evaluate_scale_factor(eg_value(score));
