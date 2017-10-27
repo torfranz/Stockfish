@@ -403,7 +403,7 @@ namespace {
                 score -= WeakQueen;
 
 			// if queen has low mobility and is quite far away from king give it a penalty
-			if (mob <= 3 && distance(pos.square<KING>(Us), s) > 3)
+			if (mob <= 3 && distance(pos.square<KING>(Us), s) >= 3)
 				score -= ImmobileQueen - make_score(mob * 22, 0);
         }
     }
