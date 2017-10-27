@@ -217,7 +217,6 @@ namespace {
   const Score RookOnPawn          = S(  8, 24);
   const Score TrappedRook         = S( 92,  0);
   const Score WeakQueen           = S( 50, 10);
-  const Score OtherCheck          = S( 10, 10);
   const Score CloseEnemies        = S(  7,  0);
   const Score PawnlessFlank       = S( 20, 80);
   const Score ThreatByHangingPawn = S( 71, 61);
@@ -421,7 +420,7 @@ namespace {
                                        : AllSquares ^ Rank1BB ^ Rank2BB ^ Rank3BB);
 
     const Square ksq = pos.square<KING>(Us);
-    Bitboard kingOnlyDefended, undefended, b, b1, b2, safe, other;
+    Bitboard kingOnlyDefended, undefended, b, b1, b2, safe;
     int kingDanger;
 
     // King shelter and enemy pawns storm
@@ -471,33 +470,18 @@ namespace {
                & ~(attackedBy2[Us] | pos.pieces(Them))
                & attackedBy[Us][QUEEN];
 
-        // Some other potential checks are also analysed, even from squares
-        // currently occupied by the opponent own pieces, as long as the square
-        // is not attacked by our pawns, and is not occupied by a blocked pawn.
-        other = ~(   attackedBy[Us][PAWN]
-                  | (pos.pieces(Them, PAWN) & shift<Up>(pos.pieces(PAWN))));
-
         // Enemy rooks safe and other checks
         if (b1 & attackedBy[Them][ROOK] & safe)
             kingDanger += RookCheck;
-
-        else if (b1 & attackedBy[Them][ROOK] & other)
-            score -= OtherCheck;
 
         // Enemy bishops safe and other checks
         if (b2 & attackedBy[Them][BISHOP] & safe)
             kingDanger += BishopCheck;
 
-        else if (b2 & attackedBy[Them][BISHOP] & other)
-            score -= OtherCheck;
-
         // Enemy knights safe and other checks
         b = pos.attacks_from<KNIGHT>(ksq) & attackedBy[Them][KNIGHT];
         if (b & safe)
             kingDanger += KnightCheck;
-
-        else if (b & other)
-            score -= OtherCheck;
 
         // Transform the kingDanger units into a Score, and substract it from the evaluation
         if (kingDanger > 0)
