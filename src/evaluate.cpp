@@ -216,6 +216,7 @@ namespace {
   const Score LongRangedBishop    = S( 22,  0);
   const Score RookOnPawn          = S(  8, 24);
   const Score TrappedRook         = S( 92,  0);
+  const Score ImmobileQueen       = S( 92,  0);
   const Score WeakQueen           = S( 50, 10);
   const Score OtherCheck          = S( 10, 10);
   const Score CloseEnemies        = S(  7,  0);
@@ -400,6 +401,10 @@ namespace {
             Bitboard pinners;
             if (pos.slider_blockers(pos.pieces(Them, ROOK, BISHOP), s, pinners))
                 score -= WeakQueen;
+
+			// if queen has low mobility and is quite far away from king give it a penalty
+			if (mob <= 3 && distance(pos.square<KING>(Us), s) > 3)
+				score -= ImmobileQueen - make_score(mob * 22, 0);
         }
     }
 
