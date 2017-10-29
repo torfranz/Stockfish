@@ -42,8 +42,8 @@ namespace {
 
   // Doubled pawn penalty [Supported][Blocked]
   const Score Doubled[2][2] = {
-	  {S(18, 38), S(26, 68)},   // Not supported, Not Blocked|Blocked
-	  {S( 0,  0), S(10, 30)} }; // Supported, Not Blocked|Blocked
+	  {S( 9, 19), S(13, 33)},   // Not supported, Not Blocked|Blocked
+	  {S( 0,  0), S( 0,  0)} }; // Supported, Not Blocked|Blocked
 
   // Lever bonus by rank
   const Score Lever[RANK_NB] = {
@@ -133,8 +133,8 @@ namespace {
         stoppers   = theirPawns & passed_pawn_mask(Us, s);
         lever      = theirPawns & PawnAttacks[Us][s];
         leverPush  = theirPawns & PawnAttacks[Us][s + Up];
-        doubled    = ourPawns   & (s - Up);
-		blocked    = theirPawns & (s + Up);
+		doubled    = ourPawns   & (forward_file_bb(Us, s) | forward_file_bb(~Us, s));
+		blocked    = (ourPawns | theirPawns) & (s + Up);
         neighbours = ourPawns   & adjacent_files_bb(f);
         phalanx    = neighbours & rank_bb(s);
         supported  = neighbours & rank_bb(s - Up);
