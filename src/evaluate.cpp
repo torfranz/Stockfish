@@ -214,6 +214,7 @@ namespace {
   const Score MinorBehindPawn     = S( 16,  0);
   const Score BishopPawns         = S(  8, 12);
   const Score LongRangedBishop    = S( 22,  0);
+  const Score RookOutpost         = S( 10,  5);
   const Score RookOnPawn          = S(  8, 24);
   const Score TrappedRook         = S( 92,  0);
   const Score WeakQueen           = S( 50, 10);
@@ -392,6 +393,16 @@ namespace {
                     && !pe->semiopen_side(Us, file_of(ksq), file_of(s) < file_of(ksq)))
                     score -= (TrappedRook - make_score(mob * 22, 0)) * (1 + !pos.can_castle(Us));
             }
+
+			// pawn supported rook outpost on open file >= 5
+			if (   relative_rank(Us, s) >= RANK_5 
+				&& pe->semiopen_file(Us, file_of(s)) 
+				&& pe->semiopen_file(Them, file_of(s))
+				&& (pe->pawn_attacks(Us) & s)
+				&& (~pe->pawn_attacks(Them) & s)
+				&& (pe->pawn_attacks(Them)))
+				score += RookOutpost;
+			
         }
 
         if (Pt == QUEEN)
