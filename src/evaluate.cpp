@@ -355,7 +355,7 @@ namespace {
 					&& (  pos.attacks_from<KNIGHT>(s) 
 						& ~pos.pieces(Us) 
 						& rank_bb(Rank(rank_of(s) + (Us == WHITE ? 2 : -2))) 
-						& ~pe->pawn_attacks_span(Them)))
+						& ~pe->pawn_attacks(Them)))
 					score += ForwardKnight;
 			}
 
