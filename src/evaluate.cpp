@@ -214,6 +214,7 @@ namespace {
   const Score MinorBehindPawn     = S( 16,  0);
   const Score BishopPawns         = S(  8, 12);
   const Score LongRangedBishop    = S( 22,  0);
+  const Score ForwardKnight       = S( 11,  0);
   const Score RookOnPawn          = S(  8, 24);
   const Score TrappedRook         = S( 92,  0);
   const Score WeakQueen           = S( 50, 10);
@@ -348,6 +349,13 @@ namespace {
                 && (pos.pieces(PAWN) & (s + pawn_push(Us))))
                 score += MinorBehindPawn;
 
+			if (Pt == KNIGHT)
+			{
+				if (relative_rank(Us, s) <= RANK_4
+					&& attacks_bb<KNIGHT>(s, pos.pieces(Us)) & rank_bb(Rank(rank_of(s) + Us == WHITE ? 2 : -2)) & ~pe->pawn_attacks_span(Them))
+					score += ForwardKnight;
+			}
+
             if (Pt == BISHOP)
             {
                 // Penalty for pawns on the same color square as the bishop
@@ -392,6 +400,7 @@ namespace {
                     && !pe->semiopen_side(Us, file_of(ksq), file_of(s) < file_of(ksq)))
                     score -= (TrappedRook - make_score(mob * 22, 0)) * (1 + !pos.can_castle(Us));
             }
+
         }
 
         if (Pt == QUEEN)
