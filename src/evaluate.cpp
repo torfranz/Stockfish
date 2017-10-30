@@ -399,8 +399,7 @@ namespace {
 				&& pe->semiopen_file(Us, file_of(s)) 
 				&& pe->semiopen_file(Them, file_of(s))
 				&& (pe->pawn_attacks(Us) & s)
-				&& (~pe->pawn_attacks(Them) & s)
-				&& (pe->pawn_attacks(Them)))
+				&& (~pe->pawn_attacks(Them) & s))
 				score += RookOutpost;
 			
         }
