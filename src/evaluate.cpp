@@ -353,7 +353,7 @@ namespace {
 			{
 				if (relative_rank(Us, s) <= RANK_4
 					&& (  pos.attacks_from<KNIGHT>(s) 
-						& ~pos.pieces(Us) 
+						& ~pos.pieces() 
 						& rank_bb(Rank(rank_of(s) + (Us == WHITE ? 2 : -2))) 
 						& ~pe->pawn_attacks(Them)))
 					score += ForwardKnight;
