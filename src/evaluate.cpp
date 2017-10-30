@@ -225,7 +225,6 @@ namespace {
   const Score ThreatByRank        = S( 16,  3);
   const Score Hanging             = S( 48, 27);
   const Score WeakUnopposedPawn   = S(  5, 25);
-  const Score ThreatByPawnPush    = S( 38, 22);
   const Score HinderPassedPawn    = S(  7,  0);
   const Score TrappedBishopA1H1   = S( 50, 50);
 
@@ -605,21 +604,6 @@ namespace {
     // Bonus for opponent unopposed weak pawns
     if (pos.pieces(Us, ROOK, QUEEN))
         score += WeakUnopposedPawn * pe->weak_unopposed(Them);
-
-    // Find squares where our pawns can push on the next move
-    b  = shift<Up>(pos.pieces(Us, PAWN)) & ~pos.pieces();
-    b |= shift<Up>(b & TRank3BB) & ~pos.pieces();
-
-    // Keep only the squares which are not completely unsafe
-    b &= ~attackedBy[Them][PAWN]
-        & (attackedBy[Us][ALL_PIECES] | ~attackedBy[Them][ALL_PIECES]);
-
-    // Add a bonus for each new pawn threats from those squares
-    b =  (shift<Left>(b) | shift<Right>(b))
-       &  pos.pieces(Them)
-       & ~attackedBy[Us][PAWN];
-
-    score += ThreatByPawnPush * popcount(b);
 
     if (T)
         Trace::add(THREAT, Us, score);
