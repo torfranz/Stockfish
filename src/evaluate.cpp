@@ -352,7 +352,7 @@ namespace {
 			if (Pt == KNIGHT)
 			{
 				if (relative_rank(Us, s) <= RANK_4
-					&& attacks_bb<KNIGHT>(s, pos.pieces(Us)) & rank_bb(Rank(rank_of(s) + Us == WHITE ? 2 : -2)) & ~pe->pawn_attacks_span(Them))
+					&& (pos.attacks_from<KNIGHT>(s) & ~pos.pieces(Us)) & rank_bb(Rank(rank_of(s) + Us == WHITE ? 2 : -2)) & ~pe->pawn_attacks_span(Them))
 					score += ForwardKnight;
 			}
 
