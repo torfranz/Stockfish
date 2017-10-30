@@ -356,6 +356,11 @@ namespace {
                 // Bonus for bishop on a long diagonal which can "see" both center squares
                 if (more_than_one(Center & (attacks_bb<BISHOP>(s, pos.pieces(PAWN)) | s)))
                     score += LongRangedBishop;
+
+				// And smaller bonus if a bishop on 2nd rank can see the enemy 7th rank
+				if (   relative_rank(Us, s) == RANK_2 
+					&& (attacks_bb<BISHOP>(s, pos.pieces(PAWN)) & (Us == WHITE ? Rank7BB : Rank2BB)))
+					score += LongRangedBishop / 2;
             }
 
             // An important Chess960 pattern: A cornered bishop blocked by a friendly
