@@ -187,9 +187,10 @@ namespace {
     S(0, 0), S(0, 33), S(45, 43), S(46, 47), S(72, 107), S(48, 118)
   };
 
-  const Score OnlyDefender[PIECE_TYPE_NB] = {
+  Score OnlyDefender[PIECE_TYPE_NB] = {
 	  S(0, 0), S(0, 0), S(10, 20), S(10, 20), S(10, 30), S(10, 40)
   };
+  TUNE(SetRange(0, 50), OnlyDefender);
 
   const Score ThreatByRook[PIECE_TYPE_NB] = {
     S(0, 0), S(0, 25), S(40, 62), S(40, 59), S(0, 34), S(35, 48)
