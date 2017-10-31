@@ -214,7 +214,7 @@ namespace {
   const Score MinorBehindPawn     = S( 16,  0);
   const Score BishopPawns         = S(  8, 12);
   const Score LongRangedBishop    = S( 22,  0);
-  const Score RookOutpost         = S( 10,  5);
+  const Score RookOutpost         = S( 20,  0);
   const Score RookOnPawn          = S(  8, 24);
   const Score TrappedRook         = S( 92,  0);
   const Score WeakQueen           = S( 50, 10);
@@ -398,10 +398,11 @@ namespace {
 			if (   relative_rank(Us, s) >= RANK_5 
 				&& pe->semiopen_file(Us, file_of(s)) 
 				&& pe->semiopen_file(Them, file_of(s))
-				&& (pe->pawn_attacks(Us) & s)
-				&& (~pe->pawn_attacks(Them) & s))
+				&& (attackedBy[Us][PAWN] & s)
+				&& !(attackedBy[Them][PAWN] & s)
+				&& !(attackedBy[Them][KNIGHT] & s)
+				&& !(attackedBy[Them][BISHOP] & s))
 				score += RookOutpost;
-			
         }
 
         if (Pt == QUEEN)
