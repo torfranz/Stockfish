@@ -187,8 +187,8 @@ namespace {
     S(0, 0), S(0, 33), S(45, 43), S(46, 47), S(72, 107), S(48, 118)
   };
 
-  const Score OnlyDefender[PIECE_TYPE_NB] = {
-	  S(0, 0), S(0, 0), S(10, 20), S(10, 20), S(10, 30), S(10, 40)
+  const Score OnlyDefender[PIECE_TYPE_NB - 2] = {
+	  S(15, 15), S(0, 0), S(0, 0), S(0, 0)
   };
 
   const Score ThreatByRook[PIECE_TYPE_NB] = {
@@ -300,7 +300,10 @@ namespace {
 
 	  while ((s = *pl++) != SQ_NONE)
 	  {
-		  score -= OnlyDefender[Pt] * popcount(pos.pieces(Us) & pos.attacks_from<Pt>(s) & ~attackedBy2[Us] & attackedBy[Them][ALL_PIECES]);
+		  int defendedCount = popcount(pos.pieces(Us) & pos.attacks_from<Pt>(s) & ~attackedBy2[Us] & attackedBy[Them][ALL_PIECES]);
+		  if (defendedCount > 1) {
+			  score -= OnlyDefender[Pt - 2] * defendedCount;
+		  }
 	  }
 
 	  return score;
