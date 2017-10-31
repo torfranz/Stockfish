@@ -188,7 +188,7 @@ namespace {
   };
 
   const Score OnlyDefender[PIECE_TYPE_NB - 2] = {
-	  S(15, 0), S(15, 0), S(20, 10), S(40, 20)
+	  S(15, 0), S(-15, 0), S(-20, -10), S(-40, -20)
   };
 
   const Score ThreatByRook[PIECE_TYPE_NB] = {
@@ -302,7 +302,7 @@ namespace {
 	  {
 		  Bitboard defendedJustByMe = pos.pieces(Us) & pos.attacks_from<Pt>(s) & ~attackedBy2[Us] & attackedBy[Them][ALL_PIECES];
 		  if (more_than_one(defendedJustByMe)) {
-			  score -= OnlyDefender[Pt - 2];
+			  score += OnlyDefender[Pt - 2];
 		  }
 	  }
 
@@ -882,8 +882,8 @@ namespace {
     score += evaluate_pieces<WHITE, ROOK  >() - evaluate_pieces<BLACK, ROOK  >();
     score += evaluate_pieces<WHITE, QUEEN >() - evaluate_pieces<BLACK, QUEEN >();
 
-	//score += evaluate_defenders<WHITE, KNIGHT>() - evaluate_defenders<BLACK, KNIGHT>();
-	score += evaluate_defenders<WHITE, BISHOP>() - evaluate_defenders<BLACK, BISHOP>();
+	score += evaluate_defenders<WHITE, KNIGHT>() - evaluate_defenders<BLACK, KNIGHT>();
+	//score += evaluate_defenders<WHITE, BISHOP>() - evaluate_defenders<BLACK, BISHOP>();
 	//score += evaluate_defenders<WHITE, ROOK>()   - evaluate_defenders<BLACK, ROOK>();
 	//score += evaluate_defenders<WHITE, QUEEN>()  - evaluate_defenders<BLACK, QUEEN>();
 
