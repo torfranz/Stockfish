@@ -100,6 +100,7 @@ namespace {
     template<Color Us> Score evaluate_passed_pawns();
     template<Color Us> Score evaluate_space();
     template<Color Us, PieceType Pt> Score evaluate_pieces();
+	template<Color Us, PieceType Pt> Score evaluate_defenders();
     ScaleFactor evaluate_scale_factor(Value eg);
     Score evaluate_initiative(Value eg);
 
@@ -184,6 +185,10 @@ namespace {
   // pawn-defended are not considered.
   const Score ThreatByMinor[PIECE_TYPE_NB] = {
     S(0, 0), S(0, 33), S(45, 43), S(46, 47), S(72, 107), S(48, 118)
+  };
+
+  const Score OnlyDefender[PIECE_TYPE_NB] = {
+	  S(0, 0), S(0, 0), S(10, 20), S(10, 20), S(10, 30), S(10, 40)
   };
 
   const Score ThreatByRook[PIECE_TYPE_NB] = {
@@ -285,6 +290,21 @@ namespace {
         kingRing[Us] = kingAttackersCount[Them] = 0;
   }
 
+  template<Tracing T>  template<Color Us, PieceType Pt>
+  Score Evaluation<T>::evaluate_defenders() {
+	  const Color Them = (Us == WHITE ? BLACK : WHITE);
+	  const Square* pl = pos.squares<Pt>(Us);
+
+	  Square s;
+	  Score score = SCORE_ZERO;
+
+	  while ((s = *pl++) != SQ_NONE)
+	  {
+		  score -= OnlyDefender[Pt] * popcount(pos.pieces(Us) & pos.attacks_from<Pt>(s) & ~attackedBy2[Us] & attackedBy[Them][ALL_PIECES]);
+	  }
+
+	  return score;
+  }
 
   // evaluate_pieces() assigns bonuses and penalties to the pieces of a given
   // color and type.
@@ -358,7 +378,7 @@ namespace {
                     score += LongRangedBishop;
             }
 
-            // An important Chess960 pattern: A cornered bishop blocked by a friendly
+			// An important Chess960 pattern: A cornered bishop blocked by a friendly
             // pawn diagonally in front of it is a very serious problem, especially
             // when that pawn is also blocked.
             if (   Pt == BISHOP
@@ -859,6 +879,11 @@ namespace {
     score += evaluate_pieces<WHITE, ROOK  >() - evaluate_pieces<BLACK, ROOK  >();
     score += evaluate_pieces<WHITE, QUEEN >() - evaluate_pieces<BLACK, QUEEN >();
 
+	score += evaluate_defenders<WHITE, KNIGHT>() - evaluate_defenders<BLACK, KNIGHT>();
+	score += evaluate_defenders<WHITE, BISHOP>() - evaluate_defenders<BLACK, BISHOP>();
+	score += evaluate_defenders<WHITE, ROOK>()   - evaluate_defenders<BLACK, ROOK>();
+	score += evaluate_defenders<WHITE, QUEEN>()  - evaluate_defenders<BLACK, QUEEN>();
+
     score += mobility[WHITE] - mobility[BLACK];
 
     score +=  evaluate_king<WHITE>()
@@ -867,10 +892,10 @@ namespace {
     score +=  evaluate_threats<WHITE>()
             - evaluate_threats<BLACK>();
 
-    score +=  evaluate_passed_pawns<WHITE>()
+	score +=  evaluate_passed_pawns<WHITE>()
             - evaluate_passed_pawns<BLACK>();
 
-    if (pos.non_pawn_material() >= SpaceThreshold)
+	if (pos.non_pawn_material() >= SpaceThreshold)
         score +=  evaluate_space<WHITE>()
                 - evaluate_space<BLACK>();
 
