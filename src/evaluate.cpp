@@ -188,7 +188,7 @@ namespace {
   };
 
   const Score OnlyDefender[PIECE_TYPE_NB - 2] = {
-	  S(50, 80), S(0, 0), S(0, 0), S(40, 20)
+	  S(40, 20), S(0, 0), S(0, 0), S(40, 20)
   };
 
   const Score ThreatByRook[PIECE_TYPE_NB] = {
@@ -882,10 +882,10 @@ namespace {
     score += evaluate_pieces<WHITE, ROOK  >() - evaluate_pieces<BLACK, ROOK  >();
     score += evaluate_pieces<WHITE, QUEEN >() - evaluate_pieces<BLACK, QUEEN >();
 
-	//score += evaluate_defenders<WHITE, KNIGHT>() - evaluate_defenders<BLACK, KNIGHT>();
+	score += evaluate_defenders<WHITE, KNIGHT>() - evaluate_defenders<BLACK, KNIGHT>();
 	//score += evaluate_defenders<WHITE, BISHOP>() - evaluate_defenders<BLACK, BISHOP>();
 	//score += evaluate_defenders<WHITE, ROOK>()   - evaluate_defenders<BLACK, ROOK>();
-	score += evaluate_defenders<WHITE, QUEEN>()  - evaluate_defenders<BLACK, QUEEN>();
+	//score += evaluate_defenders<WHITE, QUEEN>()  - evaluate_defenders<BLACK, QUEEN>();
 
     score += mobility[WHITE] - mobility[BLACK];
 
