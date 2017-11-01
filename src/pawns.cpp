@@ -133,7 +133,7 @@ namespace {
         stoppers   = theirPawns & passed_pawn_mask(Us, s);
         lever      = theirPawns & PawnAttacks[Us][s];
         leverPush  = theirPawns & PawnAttacks[Us][s + Up];
-		doubled    = ourPawns   & (forward_file_bb(Us, s) | forward_file_bb(~Us, s));
+		doubled    = ourPawns   & FileBB[file_of(s)];
 		blocked    = (ourPawns | theirPawns) & (s + Up);
         neighbours = ourPawns   & adjacent_files_bb(f);
         phalanx    = neighbours & rank_bb(s);
@@ -185,7 +185,7 @@ namespace {
         else if (backward)
             score -= Backward, e->weakUnopposed[Us] += !opposed;
 
-        if (doubled)
+        if (more_than_one(doubled))
             score -= Doubled[!!supported][!!blocked];
 
         if (lever)
