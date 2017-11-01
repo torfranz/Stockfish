@@ -42,8 +42,10 @@ namespace {
 
   // Doubled pawn penalty [Supported][Blocked]
   const Score Doubled[2][2] = {
-	  {S( 9, 19), S(13, 33)},   // Not supported, Not Blocked|Blocked
-	  {S( 0,  0), S( 0,  0)} }; // Supported, Not Blocked|Blocked
+	  // Not supported
+	  {S( 9, 19), S(13, 33)},   // Not Blocked|Blocked
+	  // Supported
+	  {S( 4,  9), S( 6, 16)} }; // Not Blocked|Blocked
 
   // Lever bonus by rank
   const Score Lever[RANK_NB] = {
