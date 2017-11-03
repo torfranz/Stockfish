@@ -99,9 +99,9 @@ namespace {
     template<Color Us> Score evaluate_threats();
     template<Color Us> Score evaluate_passed_pawns();
     template<Color Us> Score evaluate_space();
+	template<Color Us, PieceType Pt> void build_attack_information();
     template<Color Us, PieceType Pt> Score evaluate_pieces();
-	template<Color Us, PieceType Pt> Score evaluate_defenders();
-    ScaleFactor evaluate_scale_factor(Value eg);
+	ScaleFactor evaluate_scale_factor(Value eg);
     Score evaluate_initiative(Value eg);
 
     // Data members
@@ -185,10 +185,6 @@ namespace {
   // pawn-defended are not considered.
   const Score ThreatByMinor[PIECE_TYPE_NB] = {
     S(0, 0), S(0, 33), S(45, 43), S(46, 47), S(72, 107), S(48, 118)
-  };
-
-  const Score OnlyDefender[PIECE_TYPE_NB - 2] = {
-	  S(15, 0), S(-15, 0), S(-20, -10), S(-40, -20)
   };
 
   const Score ThreatByRook[PIECE_TYPE_NB] = {
@@ -291,22 +287,37 @@ namespace {
   }
 
   template<Tracing T>  template<Color Us, PieceType Pt>
-  Score Evaluation<T>::evaluate_defenders() {
+  void Evaluation<T>::build_attack_information() {
+
 	  const Color Them = (Us == WHITE ? BLACK : WHITE);
 	  const Square* pl = pos.squares<Pt>(Us);
 
+	  Bitboard b, bb;
 	  Square s;
 	  Score score = SCORE_ZERO;
 
+	  attackedBy[Us][Pt] = 0;
+
 	  while ((s = *pl++) != SQ_NONE)
 	  {
-		  Bitboard defendedJustByMe = pos.pieces(Us) & pos.attacks_from<Pt>(s) & ~attackedBy2[Us] & attackedBy[Them][ALL_PIECES];
-		  if (more_than_one(defendedJustByMe)) {
-			  score += OnlyDefender[Pt - 2];
+		  // Find attacked squares, including x-ray attacks for bishops and rooks
+		  b = Pt == BISHOP ? attacks_bb<BISHOP>(s, pos.pieces() ^ pos.pieces(Us, QUEEN))
+			  : Pt == ROOK ? attacks_bb<  ROOK>(s, pos.pieces() ^ pos.pieces(Us, ROOK, QUEEN))
+			  : pos.attacks_from<Pt>(s);
+
+		  if (pos.pinned_pieces(Us) & s)
+			  b &= LineBB[pos.square<KING>(Us)][s];
+
+		  attackedBy2[Us] |= attackedBy[Us][ALL_PIECES] & b;
+		  attackedBy[Us][ALL_PIECES] |= attackedBy[Us][Pt] |= b;
+
+		  if (b & kingRing[Them])
+		  {
+			  kingAttackersCount[Us]++;
+			  kingAttackersWeight[Us] += KingAttackWeights[Pt];
+			  kingAdjacentZoneAttacksCount[Us] += popcount(b & attackedBy[Them][KING]);
 		  }
 	  }
-
-	  return score;
   }
 
   // evaluate_pieces() assigns bonuses and penalties to the pieces of a given
@@ -324,8 +335,6 @@ namespace {
     Square s;
     Score score = SCORE_ZERO;
 
-    attackedBy[Us][Pt] = 0;
-
     while ((s = *pl++) != SQ_NONE)
     {
         // Find attacked squares, including x-ray attacks for bishops and rooks
@@ -336,19 +345,16 @@ namespace {
         if (pos.pinned_pieces(Us) & s)
             b &= LineBB[pos.square<KING>(Us)][s];
 
-        attackedBy2[Us] |= attackedBy[Us][ALL_PIECES] & b;
-        attackedBy[Us][ALL_PIECES] |= attackedBy[Us][Pt] |= b;
-
-        if (b & kingRing[Them])
-        {
-            kingAttackersCount[Us]++;
-            kingAttackersWeight[Us] += KingAttackWeights[Pt];
-            kingAdjacentZoneAttacksCount[Us] += popcount(b & attackedBy[Them][KING]);
-        }
-
-        int mob = popcount(b & mobilityArea[Us]);
-
-        mobility[Us] += MobilityBonus[Pt - 2][mob];
+		// set mobility to 1 for a piece that is the only defender for more than one attacked own pieces
+        int mob = 1;
+		if (!(  pos.pieces(Us) 
+			               & pos.attacks_from<Pt>(s) 
+			               & ~attackedBy2[Us] 
+			               & attackedBy[Them][ALL_PIECES])) 
+			mob = popcount(b & mobilityArea[Us]);
+		
+		// add mobility bonus
+		mobility[Us] += MobilityBonus[Pt - 2][mob];
 
         // Bonus for this piece as a king protector
         score += KingProtector[Pt - 2] * distance(s, pos.square<KING>(Us));
@@ -873,21 +879,25 @@ namespace {
        return pos.side_to_move() == WHITE ? v : -v;
 
     // Main evaluation begins here
-
-    initialize<WHITE>();
+	initialize<WHITE>();
     initialize<BLACK>();
+
+	// init attacks
+	build_attack_information<WHITE, KNIGHT>();
+	build_attack_information<BLACK, KNIGHT>();
+	build_attack_information<WHITE, BISHOP>();
+	build_attack_information<BLACK, BISHOP>();
+	build_attack_information<WHITE, ROOK>();
+	build_attack_information<BLACK, ROOK>();
+	build_attack_information<WHITE, QUEEN>();
+	build_attack_information<BLACK, QUEEN>();
 
     score += evaluate_pieces<WHITE, KNIGHT>() - evaluate_pieces<BLACK, KNIGHT>();
     score += evaluate_pieces<WHITE, BISHOP>() - evaluate_pieces<BLACK, BISHOP>();
     score += evaluate_pieces<WHITE, ROOK  >() - evaluate_pieces<BLACK, ROOK  >();
     score += evaluate_pieces<WHITE, QUEEN >() - evaluate_pieces<BLACK, QUEEN >();
 
-	score += evaluate_defenders<WHITE, KNIGHT>() - evaluate_defenders<BLACK, KNIGHT>();
-	//score += evaluate_defenders<WHITE, BISHOP>() - evaluate_defenders<BLACK, BISHOP>();
-	//score += evaluate_defenders<WHITE, ROOK>()   - evaluate_defenders<BLACK, ROOK>();
-	//score += evaluate_defenders<WHITE, QUEEN>()  - evaluate_defenders<BLACK, QUEEN>();
-
-    score += mobility[WHITE] - mobility[BLACK];
+	score += mobility[WHITE] - mobility[BLACK];
 
     score +=  evaluate_king<WHITE>()
             - evaluate_king<BLACK>();
