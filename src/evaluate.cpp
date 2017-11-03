@@ -344,13 +344,13 @@ namespace {
         if (pos.pinned_pieces(Us) & s)
             b &= LineBB[pos.square<KING>(Us)][s];
 
-		// set mobility to 1 for a piece that is the only defender for more than one attacked own pieces
-        int mob = 1;
-		if (!more_than_one(  pos.pieces(Us) 
-			               & pos.attacks_from<Pt>(s) 
-			               & ~attackedBy2[Us] 
-			               & attackedBy[Them][ALL_PIECES])) 
-			mob = popcount(b & mobilityArea[Us]);
+		// half mobility for a piece that is the only defender for an attacked own piece
+        int mob = popcount(b & mobilityArea[Us]);
+		if (!(  pos.pieces(Us) 
+			  & pos.attacks_from<Pt>(s) 
+			  & ~attackedBy2[Us] 
+			  & attackedBy[Them][ALL_PIECES])) 
+			mob /= 2;
 		
 		// add mobility bonus
 		mobility[Us] += MobilityBonus[Pt - 2][mob];
