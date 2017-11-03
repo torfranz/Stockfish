@@ -292,10 +292,9 @@ namespace {
 	  const Color Them = (Us == WHITE ? BLACK : WHITE);
 	  const Square* pl = pos.squares<Pt>(Us);
 
-	  Bitboard b, bb;
+	  Bitboard b;
 	  Square s;
-	  Score score = SCORE_ZERO;
-
+	  
 	  attackedBy[Us][Pt] = 0;
 
 	  while ((s = *pl++) != SQ_NONE)
@@ -347,7 +346,7 @@ namespace {
 
 		// set mobility to 1 for a piece that is the only defender for more than one attacked own pieces
         int mob = 1;
-		if (!(  pos.pieces(Us) 
+		if (!more_than_one(  pos.pieces(Us) 
 			               & pos.attacks_from<Pt>(s) 
 			               & ~attackedBy2[Us] 
 			               & attackedBy[Them][ALL_PIECES])) 
