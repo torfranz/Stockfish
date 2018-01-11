@@ -350,7 +350,7 @@ namespace {
             }
 
             // Bonus when behind a pawn
-            if (    relative_rank(Us, s) < RANK_6
+            if (    relative_rank(Us, s) < RANK_4
                 && (pos.pieces(PAWN) & (s + pawn_push(Us))))
                 score += MinorBehindPawn;
 
