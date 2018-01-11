@@ -349,14 +349,24 @@ namespace {
                    score += Outpost[Pt == BISHOP][bool(attackedBy[Us][PAWN] & bb)];
             }
 
-            // Bonus when behind a pawn
-            if (    relative_rank(Us, s) < RANK_5
-                && (pos.pieces(PAWN) & (s + pawn_push(Us))))
-                score += MinorBehindPawn;
+			// Bonus when behind a pawn
+			if (relative_rank(Us, s) < RANK_5
+				&& (pos.pieces(PAWN) & (s + pawn_push(Us))))
+				score += MinorBehindPawn;
 
+			if (Pt == KNIGHT) {
+				// give bonus to knights on rank 3 if own pawn is in back and knight has at least one supporter pawn, e.g Nf3, f2, g2
+				if (relative_rank(Us, s) == RANK_3
+					&& (pos.pieces(Us, PAWN) & (s + (Us == WHITE ? SOUTH : NORTH)))
+					&& ((pos.pieces(Us, PAWN) & (s + (Us == WHITE ? SOUTH_EAST : NORTH_EAST))) || (pos.pieces(Us, PAWN) & (s + (Us == WHITE ? SOUTH_WEST : NORTH_WEST)))))
+				{
+					score += MinorBehindPawn;
+				}
+			}
+						
             if (Pt == BISHOP)
             {
-                // Penalty for pawns on the same color square as the bishop
+				// Penalty for pawns on the same color square as the bishop
                 score -= BishopPawns * pe->pawns_on_same_color_squares(Us, s);
 
                 // Bonus for bishop on a long diagonal which can "see" both center squares
