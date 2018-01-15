@@ -208,7 +208,7 @@ namespace {
     S(-20,-12), S( 1, -8), S( 2, 10), S(  9, 10)
   };
 
-  // KingProtector[PieceType-2] contains a bonus according to distance from king
+    // KingProtector[PieceType-2] contains a bonus according to distance from king
   const Score KingProtector[] = { S(-3, -5), S(-4, -3), S(-3, 0), S(-1, 1) };
 
   // Assorted bonuses and penalties used by evaluation
@@ -218,6 +218,8 @@ namespace {
   const Score RookOnPawn            = S(  8, 24);
   const Score TrappedRook           = S( 92,  0);
   const Score WeakQueen             = S( 50, 10);
+  const Score RookPinner            = S( 15,  5);
+  const Score BishopPinner          = S( 20,  5);
   const Score CloseEnemies          = S(  7,  0);
   const Score PawnlessFlank         = S( 20, 80);
   const Score ThreatBySafePawn      = S(192,175);
@@ -306,7 +308,7 @@ namespace {
     if (Pt == QUEEN)
         attackedBy[Us][QUEEN_DIAGONAL] = 0;
 
-    while ((s = *pl++) != SQ_NONE)
+	while ((s = *pl++) != SQ_NONE)
     {
         // Find attacked squares, including x-ray attacks for bishops and rooks
         b = Pt == BISHOP ? attacks_bb<BISHOP>(s, pos.pieces() ^ pos.pieces(QUEEN))
@@ -331,7 +333,7 @@ namespace {
 
         int mob = popcount(b & mobilityArea[Us]);
 
-        mobility[Us] += MobilityBonus[Pt - 2][mob];
+		mobility[Us] += MobilityBonus[Pt - 2][mob];
 
         // Bonus for this piece as a king protector
         score += KingProtector[Pt - 2] * distance(s, pos.square<KING>(Us));
@@ -356,6 +358,13 @@ namespace {
 
             if (Pt == BISHOP)
             {
+				// bonus for king pinning Knight, Rook
+				if (PseudoAttacks[BISHOP][s] & pos.square<KING>(Them)
+					&& (between_bb(s, pos.square<KING>(Them))
+						& pos.pinned_pieces(Them)
+						& (pos.pieces(Them, ROOK, KNIGHT))))
+					score += BishopPinner;
+
                 // Penalty for pawns on the same color square as the bishop
                 score -= BishopPawns * pe->pawns_on_same_color_squares(Us, s);
 
@@ -381,7 +390,14 @@ namespace {
 
         if (Pt == ROOK)
         {
-            // Bonus for aligning with enemy pawns on the same rank/file
+			// bonus for king pinning Bishop, Knight
+			if(PseudoAttacks[ROOK][s] & pos.square<KING>(Them)
+				&& (  between_bb(s, pos.square<KING>(Them)) 
+					& pos.pinned_pieces(Them)
+					& (pos.pieces(Them, BISHOP, KNIGHT))))
+						score += RookPinner;
+				
+			// Bonus for aligning with enemy pawns on the same rank/file
             if (relative_rank(Us, s) >= RANK_5)
                 score += RookOnPawn * popcount(pos.pieces(Them, PAWN) & PseudoAttacks[ROOK][s]);
 
