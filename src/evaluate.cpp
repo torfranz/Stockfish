@@ -792,7 +792,7 @@ namespace {
 
     Color strongSide = eg > VALUE_DRAW ? WHITE : BLACK;
     ScaleFactor sf = me->scale_factor(pos, strongSide);
-
+	
     // If we don't already have an unusual scale factor, check for certain
     // types of endgames, and use a lower scale for those.
     if (sf == SCALE_FACTOR_NORMAL || sf == SCALE_FACTOR_ONEPAWN)
@@ -857,28 +857,39 @@ namespace {
     initialize<WHITE>();
     initialize<BLACK>();
 
+	// -93 +- 20
     score += evaluate_pieces<WHITE, KNIGHT>() - evaluate_pieces<BLACK, KNIGHT>();
-    score += evaluate_pieces<WHITE, BISHOP>() - evaluate_pieces<BLACK, BISHOP>();
-    score += evaluate_pieces<WHITE, ROOK  >() - evaluate_pieces<BLACK, ROOK  >();
-    score += evaluate_pieces<WHITE, QUEEN >() - evaluate_pieces<BLACK, QUEEN >();
+    
+	// -109.07 +/- 19.21
+	score += evaluate_pieces<WHITE, BISHOP>() - evaluate_pieces<BLACK, BISHOP>();
+    
+	// -145 +/- 20
+	score += evaluate_pieces<WHITE, ROOK  >() - evaluate_pieces<BLACK, ROOK  >();
+    
+	// -31.00 +/- 18.32
+	score += evaluate_pieces<WHITE, QUEEN >() - evaluate_pieces<BLACK, QUEEN >();
 
-    score += mobility[WHITE] - mobility[BLACK];
+    // -35.91 +/- 17.94
+	score += mobility[WHITE] - mobility[BLACK];
 
-    score +=  evaluate_king<WHITE>()
-            - evaluate_king<BLACK>();
+    // -123.42 +/- 20.75
+	score +=  evaluate_king<WHITE>() - evaluate_king<BLACK>();
 
-    score +=  evaluate_threats<WHITE>()
-            - evaluate_threats<BLACK>();
+    // -49.32 +/- 17.94
+	score +=  evaluate_threats<WHITE>() - evaluate_threats<BLACK>();
 
-    score +=  evaluate_passed_pawns<WHITE>()
-            - evaluate_passed_pawns<BLACK>();
+    // -145.13 +/- 20.34
+	score +=  evaluate_passed_pawns<WHITE>() - evaluate_passed_pawns<BLACK>();
 
+	// 5.91 +/- 17.79
     if (pos.non_pawn_material() >= SpaceThreshold)
         score +=  evaluate_space<WHITE>()
                 - evaluate_space<BLACK>();
 
-    score += evaluate_initiative(eg_value(score));
+    // 2.78 +/- 17.08
+	score += evaluate_initiative(eg_value(score));
 
+	// -11.47 +/- 17.69
     // Interpolate between a middlegame and a (scaled by 'sf') endgame score
     ScaleFactor sf = evaluate_scale_factor(eg_value(score));
     v =  mg_value(score) * int(me->game_phase())
