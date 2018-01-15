@@ -865,9 +865,9 @@ namespace {
     score +=  evaluate_passed_pawns<WHITE>()
             - evaluate_passed_pawns<BLACK>();
 
-    if (pos.non_pawn_material() >= SpaceThreshold)
+    /*if (pos.non_pawn_material() >= SpaceThreshold)
         score +=  evaluate_space<WHITE>()
-                - evaluate_space<BLACK>();
+                - evaluate_space<BLACK>();*/
 
     score += evaluate_initiative(eg_value(score));
 
