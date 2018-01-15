@@ -359,11 +359,11 @@ namespace {
             if (Pt == BISHOP)
             {
 				// bonus for king pinning Knight, Rook
-				if (PseudoAttacks[BISHOP][s] & pos.square<KING>(Them)
+				/*if (PseudoAttacks[BISHOP][s] & pos.square<KING>(Them)
 					&& (between_bb(s, pos.square<KING>(Them))
 						& pos.pinned_pieces(Them)
 						& (pos.pieces(Them, ROOK, KNIGHT))))
-					score += BishopPinner;
+					score += BishopPinner;*/
 
                 // Penalty for pawns on the same color square as the bishop
                 score -= BishopPawns * pe->pawns_on_same_color_squares(Us, s);
@@ -391,11 +391,11 @@ namespace {
         if (Pt == ROOK)
         {
 			// bonus for king pinning Bishop, Knight
-			/*if(PseudoAttacks[ROOK][s] & pos.square<KING>(Them)
+			if(PseudoAttacks[ROOK][s] & pos.square<KING>(Them)
 				&& (  between_bb(s, pos.square<KING>(Them)) 
 					& pos.pinned_pieces(Them)
 					& (pos.pieces(Them, BISHOP, KNIGHT))))
-						score += RookPinner;*/
+						score += RookPinner;
 				
 			// Bonus for aligning with enemy pawns on the same rank/file
             if (relative_rank(Us, s) >= RANK_5)
