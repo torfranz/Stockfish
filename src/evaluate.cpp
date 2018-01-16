@@ -99,7 +99,7 @@ namespace {
     template<Color Us> Score evaluate_threats();
     template<Color Us> Score evaluate_passed_pawns();
     template<Color Us> Score evaluate_space();
-    template<Color Us, PieceType Pt> Score evaluate_pieces();
+	template<Color Us, PieceType Pt> Score evaluate_pieces();
     ScaleFactor evaluate_scale_factor(Value eg);
     Score evaluate_initiative(Value eg);
 
@@ -228,6 +228,7 @@ namespace {
   const Score ThreatByAttackOnQueen = S( 38, 22);
   const Score HinderPassedPawn      = S(  7,  0);
   const Score TrappedBishopA1H1     = S( 50, 50);
+  const Score WeakSquare            = S(  5,  0);
 
   #undef S
   #undef V
@@ -531,9 +532,18 @@ namespace {
     const Direction Left     = (Us == WHITE ? NORTH_WEST : SOUTH_EAST);
     const Direction Right    = (Us == WHITE ? NORTH_EAST : SOUTH_WEST);
     const Bitboard  TRank3BB = (Us == WHITE ? Rank3BB    : Rank6BB);
+	const Bitboard  TheirHalf = (Us == WHITE ? Rank5BB | Rank6BB | Rank7BB | Rank8BB : Rank4BB | Rank3BB | Rank2BB | Rank1BB);
 
     Bitboard b, weak, defended, stronglyProtected, safeThreats;
     Score score = SCORE_ZERO;
+
+	// give bonus to the count of all (non pawn) attacked squares in enemy half not defended by enemy pawns
+	score += WeakSquare * popcount(  TheirHalf 
+		                           & ~pe->pawn_attacks(Them) 
+		                           & (  attackedBy[Us][KNIGHT] 
+									  | attackedBy[Us][BISHOP] 
+									  | attackedBy[Us][ROOK]
+									  | attackedBy[Us][QUEEN]));
 
     // Non-pawn enemies attacked by a pawn
     weak = (pos.pieces(Them) ^ pos.pieces(Them, PAWN)) & attackedBy[Us][PAWN];
@@ -878,7 +888,7 @@ namespace {
 
     v /= int(PHASE_MIDGAME);
 
-    // In case of tracing add all remaining individual evaluation terms
+	// In case of tracing add all remaining individual evaluation terms
     if (T)
     {
         Trace::add(MATERIAL, pos.psq_score());
