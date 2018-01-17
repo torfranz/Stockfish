@@ -795,7 +795,7 @@ namespace {
 				& (pos.pieces(BLACK, PAWN) | attackedBy[BLACK][PAWN]))
 				| (shift<SOUTH>(pos.pieces(BLACK, PAWN))
 					& (pos.pieces(WHITE, PAWN) | attackedBy[WHITE][PAWN]))))
-			return ScaleFactor(31);
+			return ScaleFactor(46);
 
         if (pos.opposite_bishops())
         {
