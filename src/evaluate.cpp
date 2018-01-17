@@ -789,6 +789,14 @@ namespace {
     // types of endgames, and use a lower scale for those.
     if (sf == SCALE_FACTOR_NORMAL || sf == SCALE_FACTOR_ONEPAWN)
     {
+		if (pe->open_files() < 2
+			&& pe->pawn_asymmetry() < 2
+			&& pos.count<PAWN>() == popcount((shift<NORTH>(pos.pieces(WHITE, PAWN))
+				& (pos.pieces(BLACK, PAWN) | attackedBy[BLACK][PAWN]))
+				| (shift<SOUTH>(pos.pieces(BLACK, PAWN))
+					& (pos.pieces(WHITE, PAWN) | attackedBy[WHITE][PAWN]))))
+			return ScaleFactor(31);
+
         if (pos.opposite_bishops())
         {
             // Endgame with opposite-colored bishops and no other pieces (ignoring pawns)
@@ -802,16 +810,7 @@ namespace {
             return ScaleFactor(46);
         }
 
-		// Positions where basically all pawns are blocked and where there are max one open file are drawish
-		else if (   pe->open_files() < 2
-			     && pe->pawn_asymmetry() < 2
-			     && pos.count<PAWN>() == popcount(  (  shift<NORTH>(pos.pieces(WHITE, PAWN))
-													 & (pos.pieces(BLACK, PAWN) | attackedBy[BLACK][PAWN]))
-					                              | (  shift<SOUTH>(pos.pieces(BLACK, PAWN)) 
-								                     & (pos.pieces(WHITE, PAWN) | attackedBy[WHITE][PAWN])))) 
-				return ScaleFactor(31);
-
-        // Endings where weaker side can place his king in front of the opponent's
+		// Endings where weaker side can place his king in front of the opponent's
         // pawns are drawish.
         else if (    abs(eg) <= BishopValueEg
                  &&  pos.count<PAWN>(strongSide) <= 2
