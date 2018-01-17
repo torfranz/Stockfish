@@ -804,11 +804,12 @@ namespace {
 
 		// Positions where basically all pawns are blocked and where there are max one open file are drawish
 		else if (   pe->open_files() < 2
+			     && pe->pawn_asymmetry() < 2
 			     && pos.count<PAWN>() == popcount(  (  shift<NORTH>(pos.pieces(WHITE, PAWN))
 													 & (pos.pieces(BLACK, PAWN) | attackedBy[BLACK][PAWN]))
 					                              | (  shift<SOUTH>(pos.pieces(BLACK, PAWN)) 
 								                     & (pos.pieces(WHITE, PAWN) | attackedBy[WHITE][PAWN])))) 
-				return ScaleFactor(48);
+				return ScaleFactor(31);
 
         // Endings where weaker side can place his king in front of the opponent's
         // pawns are drawish.
