@@ -871,6 +871,15 @@ namespace {
 
     score += evaluate_initiative(eg_value(score));
 
+	// if position is quite closed reduce score
+	if (pe->open_files() < 2
+		&& pe->pawn_asymmetry() < 2
+		&& pos.count<PAWN>() == popcount((shift<NORTH>(pos.pieces(WHITE, PAWN))
+			& (pos.pieces(BLACK, PAWN) | pe->pawn_attacks(BLACK)))
+			| (shift<SOUTH>(pos.pieces(BLACK, PAWN))
+				& (pos.pieces(WHITE, PAWN) | pe->pawn_attacks(WHITE)))))
+		score = score * 3 / 4;
+
     // Interpolate between a middlegame and a (scaled by 'sf') endgame score
     ScaleFactor sf = evaluate_scale_factor(eg_value(score));
     v =  mg_value(score) * int(me->game_phase())
