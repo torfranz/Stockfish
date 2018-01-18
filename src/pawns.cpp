@@ -242,7 +242,7 @@ Entry* probe(const Position& pos) {
 		  & (pos.pieces(BLACK, PAWN) | e->pawnAttacks[BLACK]))
 		  | (shift<SOUTH>(pos.pieces(BLACK, PAWN))
 			  & (pos.pieces(WHITE, PAWN) | e->pawnAttacks[WHITE]))))
-	  e->score = e->score * 2 / 3;
+	  e->score = e->score * 3 / 4;
 
   return e;
 }
