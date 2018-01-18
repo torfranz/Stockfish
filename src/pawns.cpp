@@ -234,6 +234,16 @@ Entry* probe(const Position& pos) {
   e->score = evaluate<WHITE>(pos, e) - evaluate<BLACK>(pos, e);
   e->asymmetry = popcount(e->semiopenFiles[WHITE] ^ e->semiopenFiles[BLACK]);
   e->openFiles = popcount(e->semiopenFiles[WHITE] & e->semiopenFiles[BLACK]);
+
+  // if position is quite closed reduce score
+  if (   e->open_files() < 2
+	  && e->pawn_asymmetry() < 2
+	  && pos.count<PAWN>() == popcount((shift<NORTH>(pos.pieces(WHITE, PAWN))
+		  & (pos.pieces(BLACK, PAWN) | e->pawnAttacks[BLACK]))
+		  | (shift<SOUTH>(pos.pieces(BLACK, PAWN))
+			  & (pos.pieces(WHITE, PAWN) | e->pawnAttacks[WHITE]))))
+	  e->score = e->score * 2 / 3;
+
   return e;
 }
 

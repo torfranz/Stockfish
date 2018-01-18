@@ -789,15 +789,7 @@ namespace {
     // types of endgames, and use a lower scale for those.
     if (sf == SCALE_FACTOR_NORMAL || sf == SCALE_FACTOR_ONEPAWN)
     {
-		if (pe->open_files() < 2
-			&& pe->pawn_asymmetry() < 2
-			&& pos.count<PAWN>() == popcount((shift<NORTH>(pos.pieces(WHITE, PAWN))
-				& (pos.pieces(BLACK, PAWN) | attackedBy[BLACK][PAWN]))
-				| (shift<SOUTH>(pos.pieces(BLACK, PAWN))
-					& (pos.pieces(WHITE, PAWN) | attackedBy[WHITE][PAWN]))))
-			return ScaleFactor(46);
-
-        if (pos.opposite_bishops())
+		if (pos.opposite_bishops())
         {
             // Endgame with opposite-colored bishops and no other pieces (ignoring pawns)
             // is almost a draw, in case of KBP vs KB, it is even more a draw.
@@ -880,7 +872,7 @@ namespace {
 
     score += evaluate_initiative(eg_value(score));
 
-    // Interpolate between a middlegame and a (scaled by 'sf') endgame score
+	// Interpolate between a middlegame and a (scaled by 'sf') endgame score
     ScaleFactor sf = evaluate_scale_factor(eg_value(score));
     v =  mg_value(score) * int(me->game_phase())
        + eg_value(score) * int(PHASE_MIDGAME - me->game_phase()) * sf / SCALE_FACTOR_NORMAL;
