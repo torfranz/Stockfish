@@ -41,7 +41,8 @@ namespace {
   Score Connected[2][2][3][RANK_NB];
 
   // Doubled pawn penalty
-  const Score Doubled = S(18, 38);
+  const Score Doubled        = S(18, 38);
+  const Score BlockedDoubled = S( 9,  9);
 
   // Lever bonus by rank
   const Score Lever[RANK_NB] = {
@@ -99,7 +100,7 @@ namespace {
     const Direction Right = (Us == WHITE ? NORTH_EAST : SOUTH_WEST);
     const Direction Left  = (Us == WHITE ? NORTH_WEST : SOUTH_EAST);
 
-    Bitboard b, neighbours, stoppers, doubled, supported, phalanx;
+    Bitboard b, neighbours, stoppers, supported, phalanx;
     Bitboard lever, leverPush;
     Square s;
     bool opposed, backward;
@@ -116,6 +117,17 @@ namespace {
     e->pawnsOnSquares[Us][BLACK] = popcount(ourPawns & DarkSquares);
     e->pawnsOnSquares[Us][WHITE] = pos.count<PAWN>(Us) - e->pawnsOnSquares[Us][BLACK];
 
+	// get all unsupported front doubled pawns
+	b = ourPawns & shift<Up>(ourPawns) & ~e->pawnAttacks[Us];
+	if (b) {
+		score -= Doubled * popcount(b);
+
+		// to those which are blocked by enemy pawn give additional penalty
+		b = theirPawns & shift<Up>(b);
+		if (b)
+			score -= BlockedDoubled * popcount(b);
+	}
+
     // Loop through all pawns of the current color and score each pawn
     while ((s = *pl++) != SQ_NONE)
     {
@@ -131,7 +143,6 @@ namespace {
         stoppers   = theirPawns & passed_pawn_mask(Us, s);
         lever      = theirPawns & PawnAttacks[Us][s];
         leverPush  = theirPawns & PawnAttacks[Us][s + Up];
-        doubled    = ourPawns   & (s - Up);
         neighbours = ourPawns   & adjacent_files_bb(f);
         phalanx    = neighbours & rank_bb(s);
         supported  = neighbours & rank_bb(s - Up);
@@ -181,9 +192,6 @@ namespace {
 
         else if (backward)
             score -= Backward, e->weakUnopposed[Us] += !opposed;
-
-        if (doubled && !supported)
-            score -= Doubled;
 
         if (lever)
             score += Lever[relative_rank(Us, s)];
