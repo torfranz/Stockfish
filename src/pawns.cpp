@@ -41,8 +41,8 @@ namespace {
   Score Connected[2][2][3][RANK_NB];
 
   // Doubled pawn penalty
-  const Score Doubled        = S(18, 38);
-  const Score BlockedDoubled = S( 9,  9);
+  const Score Doubled        = S(14, 34);
+  const Score BlockedDoubled = S( 8,  8);
 
   // Lever bonus by rank
   const Score Lever[RANK_NB] = {
