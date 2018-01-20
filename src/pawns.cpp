@@ -42,8 +42,7 @@ namespace {
 
   // Doubled pawn penalty
   const Score Doubled        = S(14, 34);
-  const Score BlockedDoubled = S( 8,  8);
-
+  
   // Lever bonus by rank
   const Score Lever[RANK_NB] = {
     S( 0,  0), S( 0,  0), S(0, 0), S(0, 0),
@@ -97,6 +96,7 @@ namespace {
 
     const Color     Them  = (Us == WHITE ? BLACK      : WHITE);
     const Direction Up    = (Us == WHITE ? NORTH      : SOUTH);
+	const Direction Down  = (Us == WHITE ? SOUTH      : NORTH);
     const Direction Right = (Us == WHITE ? NORTH_EAST : SOUTH_WEST);
     const Direction Left  = (Us == WHITE ? NORTH_WEST : SOUTH_EAST);
 
@@ -117,18 +117,7 @@ namespace {
     e->pawnsOnSquares[Us][BLACK] = popcount(ourPawns & DarkSquares);
     e->pawnsOnSquares[Us][WHITE] = pos.count<PAWN>(Us) - e->pawnsOnSquares[Us][BLACK];
 
-	// get all unsupported front doubled pawns
-	b = ourPawns & shift<Up>(ourPawns) & ~e->pawnAttacks[Us];
-	if (b) {
-		score -= Doubled * popcount(b);
-
-		// to those which are blocked by enemy pawn give additional penalty
-		b = theirPawns & shift<Up>(b);
-		if (b)
-			score -= BlockedDoubled * popcount(b);
-	}
-
-    // Loop through all pawns of the current color and score each pawn
+	// Loop through all pawns of the current color and score each pawn
     while ((s = *pl++) != SQ_NONE)
     {
         assert(pos.piece_on(s) == make_piece(Us, PAWN));
@@ -196,6 +185,15 @@ namespace {
         if (lever)
             score += Lever[relative_rank(Us, s)];
     }
+
+	// all doubled pawns
+	b = ourPawns & shift<Up>(ourPawns);
+	if (b) {
+		// all doubled not defendable by pawns
+		b = (b | shift<Down>(b)) & ~e->pawn_attacks_span(Us);
+		if (b)
+			score -= Doubled * popcount(b);
+	}
 
     return score;
   }
