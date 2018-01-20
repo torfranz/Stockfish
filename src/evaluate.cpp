@@ -408,10 +408,9 @@ namespace {
             if (pos.slider_blockers(pos.pieces(Them, ROOK, BISHOP), s, pinners))
                 score -= WeakQueen;
 
-			// Bonus when queen is on a square where enemy does only have the other colored bishop
+			// Bonus when queen is on a square where enemy does not have the bishop
 			Bitboard colorSquares = DarkSquares & s ? DarkSquares : ~DarkSquares;
-			if (   pos.pieces(Them, BISHOP) 
-				&& !(colorSquares & pos.pieces(Them, BISHOP)))
+			if (!(colorSquares & pos.pieces(Them, BISHOP)))
 				score += QueenOnRightColor;
         }
     }
