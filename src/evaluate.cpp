@@ -218,7 +218,7 @@ namespace {
   const Score RookOnPawn            = S(  8, 24);
   const Score TrappedRook           = S( 92,  0);
   const Score WeakQueen             = S( 50, 10);
-  const Score QueenOnRightColor           = S( 15,  0);
+  const Score QueenOnBishopColor    = S( 20,  0);
   const Score CloseEnemies          = S(  7,  0);
   const Score PawnlessFlank         = S( 20, 80);
   const Score ThreatBySafePawn      = S(192,175);
@@ -296,7 +296,7 @@ namespace {
     const Color Them = (Us == WHITE ? BLACK : WHITE);
     const Bitboard OutpostRanks = (Us == WHITE ? Rank4BB | Rank5BB | Rank6BB
                                                : Rank5BB | Rank4BB | Rank3BB);
-    const Square* pl = pos.squares<Pt>(Us);
+	const Square* pl = pos.squares<Pt>(Us);
 
     Bitboard b, bb;
     Square s;
@@ -409,9 +409,10 @@ namespace {
                 score -= WeakQueen;
 
 			// Bonus when queen is on a square where enemy does not have the bishop
-			Bitboard colorSquares = DarkSquares & s ? DarkSquares : ~DarkSquares;
-			if (!(colorSquares & pos.pieces(Them, BISHOP)))
-				score += QueenOnRightColor;
+			if (   pos.count<BISHOP>(Them) == 1
+				&& (OutpostRanks & s)
+				&& ((DarkSquares & s ? DarkSquares : ~DarkSquares) & pos.pieces(Them, BISHOP)))
+				score -= QueenOnBishopColor;
         }
     }
 
