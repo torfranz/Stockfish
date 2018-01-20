@@ -227,6 +227,7 @@ namespace {
   const Score ThreatByPawnPush      = S( 38, 22);
   const Score ThreatByAttackOnQueen = S( 38, 22);
   const Score HinderPassedPawn      = S(  7,  0);
+  const Score HeavyOnRank7          = S( 10,  0);
   const Score TrappedBishopA1H1     = S( 50, 50);
 
   #undef S
@@ -305,6 +306,14 @@ namespace {
 
     if (Pt == QUEEN)
         attackedBy[Us][QUEEN_DIAGONAL] = 0;
+
+	// bonus for number of heavy pieces on 7th (2rd) rank
+	if (Pt == ROOK) {
+		b = pos.pieces(Us, ROOK, QUEEN) & (Us == WHITE ? Rank7BB : Rank2BB);
+		int count = popcount(b);
+		if (b)
+			score += HeavyOnRank7 * popcount(b);
+	}
 
     while ((s = *pl++) != SQ_NONE)
     {
