@@ -96,6 +96,7 @@ namespace {
 
     const Color     Them  = (Us == WHITE ? BLACK      : WHITE);
     const Direction Up    = (Us == WHITE ? NORTH      : SOUTH);
+	const Direction Down  = (Us == WHITE ? SOUTH      : NORTH);
     const Direction Right = (Us == WHITE ? NORTH_EAST : SOUTH_WEST);
     const Direction Left  = (Us == WHITE ? NORTH_WEST : SOUTH_EAST);
 
@@ -115,6 +116,7 @@ namespace {
     e->pawnAttacks[Us]   = shift<Right>(ourPawns) | shift<Left>(ourPawns);
     e->pawnsOnSquares[Us][BLACK] = popcount(ourPawns & DarkSquares);
     e->pawnsOnSquares[Us][WHITE] = pos.count<PAWN>(Us) - e->pawnsOnSquares[Us][BLACK];
+	e->blockedPawns[Us] = shift<Down>(theirPawns) & ourPawns;
 
     // Loop through all pawns of the current color and score each pawn
     while ((s = *pl++) != SQ_NONE)
