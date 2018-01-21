@@ -218,7 +218,7 @@ namespace {
   const Score RookOnPawn            = S(  8, 24);
   const Score TrappedRook           = S( 92,  0);
   const Score WeakQueen             = S( 50, 10);
-  const Score QueenOnBishopColor    = S( 20,  0);
+  const Score QueenOnBishopColor    = S( 15,  0);
   const Score CloseEnemies          = S(  7,  0);
   const Score PawnlessFlank         = S( 20, 80);
   const Score ThreatBySafePawn      = S(192,175);
@@ -298,7 +298,7 @@ namespace {
                                                : Rank5BB | Rank4BB | Rank3BB);
 	const Square* pl = pos.squares<Pt>(Us);
 
-    Bitboard b, bb;
+    Bitboard b, bb, pieceMobilityArea;
     Square s;
     Score score = SCORE_ZERO;
 
@@ -330,7 +330,8 @@ namespace {
             kingAdjacentZoneAttacksCount[Us] += popcount(b & attackedBy[Them][KING]);
         }
 
-        int mob = popcount(b & mobilityArea[Us]);
+		pieceMobilityArea = b & mobilityArea[Us];
+        int mob = popcount(pieceMobilityArea);
 
         mobility[Us] += MobilityBonus[Pt - 2][mob];
 
@@ -409,10 +410,12 @@ namespace {
                 score -= WeakQueen;
 
 			// Bonus when queen is on a square where enemy does not have the bishop
+			// and where queen has enough mobility on those colored squares
+			Bitboard colorSquares = DarkSquares & s ? DarkSquares : ~DarkSquares;
 			if (   pos.count<BISHOP>(Them) == 1
-				&& (OutpostRanks & s)
-				&& ((DarkSquares & s ? DarkSquares : ~DarkSquares) & pos.pieces(Them, BISHOP)))
-				score -= QueenOnBishopColor;
+				&& (popcount(pieceMobilityArea & colorSquares) > 5)
+				&& !(colorSquares & pos.pieces(Them, BISHOP)))
+				score += QueenOnBishopColor;
         }
     }
 
