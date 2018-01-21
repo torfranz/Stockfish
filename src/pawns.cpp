@@ -41,7 +41,7 @@ namespace {
   Score Connected[2][2][3][RANK_NB];
 
   // Doubled pawn penalty
-  const Score Doubled        = S(14, 34);
+  const Score Doubled        = S(30, 45);
   
   // Lever bonus by rank
   const Score Lever[RANK_NB] = {
@@ -186,15 +186,15 @@ namespace {
             score += Lever[relative_rank(Us, s)];
     }
 
-	// all doubled pawns
+	// all doubled front pawns
 	b = ourPawns & shift<Up>(ourPawns);
 	if (b) {
-		// all doubled not defendable by pawns
-		b = (b | shift<Down>(b)) & ~e->pawn_attacks_span(Us);
-		if (b)
-			score -= Doubled * popcount(b);
+		// all of those which are not defendable by other pawns even when pushing forward
+		b = shift<Up>(b) & ~e->pawn_attacks_span(Us);
+	    if (b)
+		    score -= Doubled * popcount(b);
 	}
-
+	
     return score;
   }
 
