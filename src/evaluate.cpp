@@ -218,7 +218,7 @@ namespace {
   const Score RookOnPawn            = S(  8, 24);
   const Score TrappedRook           = S( 92,  0);
   const Score WeakQueen             = S( 50, 10);
-  const Score QueenOnRightColor           = S( 15,  0);
+  Score QueenOnRightColor           = S( 15,  0);
   const Score CloseEnemies          = S(  7,  0);
   const Score PawnlessFlank         = S( 20, 80);
   const Score ThreatBySafePawn      = S(192,175);
@@ -229,6 +229,8 @@ namespace {
   const Score ThreatByAttackOnQueen = S( 38, 22);
   const Score HinderPassedPawn      = S(  7,  0);
   const Score TrappedBishopA1H1     = S( 50, 50);
+
+  TUNE(SetRange(-10, 30), QueenOnRightColor);
 
   #undef S
   #undef V
