@@ -349,6 +349,7 @@ namespace {
                    score += Outpost[Pt == BISHOP][bool(attackedBy[Us][PAWN] & bb)];
             }
 
+			// Failed to retire http://tests.stockfishchess.org/tests/view/59f6e7480ebc590ccbb89ca0
             // Bonus when behind a pawn
             if (    relative_rank(Us, s) < RANK_5
                 && (pos.pieces(PAWN) & (s + pawn_push(Us))))
@@ -381,6 +382,7 @@ namespace {
 
         if (Pt == ROOK)
         {
+			// ELO?
             // Bonus for aligning with enemy pawns on the same rank/file
             if (relative_rank(Us, s) >= RANK_5)
                 score += RookOnPawn * popcount(pos.pieces(Them, PAWN) & PseudoAttacks[ROOK][s]);
@@ -402,7 +404,8 @@ namespace {
 
         if (Pt == QUEEN)
         {
-            // Penalty if any relative pin or discovered attack against the queen
+			// -4.52 +/- 13.31
+			// Penalty if any relative pin or discovered attack against the queen
             Bitboard pinners;
             if (pos.slider_blockers(pos.pieces(Them, ROOK, BISHOP), s, pinners))
                 score -= WeakQueen;
@@ -878,7 +881,7 @@ namespace {
         score +=  evaluate_space<WHITE>()
                 - evaluate_space<BLACK>();
 
-    // 2.78 +/- 17.08
+    // 2.78 +/- 17.08 failed http://tests.stockfishchess.org/tests/view/589988960ebc59099759f3f1
 	score += evaluate_initiative(eg_value(score));
 
 	// -11.47 +/- 17.69
