@@ -361,6 +361,7 @@ namespace {
 
             if (Pt == BISHOP)
             {
+				// -10.77 +/- 13.62
                 // Penalty for pawns on the same color square as the bishop
                 score -= BishopPawns * pe->pawns_on_same_color_squares(Us, s);
 
@@ -386,7 +387,7 @@ namespace {
 
         if (Pt == ROOK)
         {
-			// ELO?
+			// 4.17 +/- 13.09
             // Bonus for aligning with enemy pawns on the same rank/file
             if (relative_rank(Us, s) >= RANK_5)
                 score += RookOnPawn * popcount(pos.pieces(Them, PAWN) & PseudoAttacks[ROOK][s]);
