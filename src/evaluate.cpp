@@ -338,10 +338,12 @@ namespace {
         mobility[Us] += MobilityBonus[Pt - 2][mob];
 
         // Bonus for this piece as a king protector
+		// -7.99 +/- 15.05
         score += KingProtector[Pt - 2] * distance(s, pos.square<KING>(Us));
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
+			// -28.55 +/- 14.81
             // Bonus for outpost squares
             bb = OutpostRanks & ~pe->pawn_attacks_span(Them);
             if (bb & s)
@@ -353,7 +355,10 @@ namespace {
                    score += Outpost[Pt == BISHOP][bool(attackedBy[Us][PAWN] & bb)];
             }
 
-			// Failed to retire http://tests.stockfishchess.org/tests/view/59f6e7480ebc590ccbb89ca0
+			// Failed http://tests.stockfishchess.org/tests/view/59f6e7480ebc590ccbb89ca0
+			// -0.99 [-2.65,0.83] (95%)
+			// -6.25 +/- 17.91 1000x0.01 NEW
+			// 0.14 +/- 8.08 5000x0.01 NEW
             // Bonus when behind a pawn
             if (    relative_rank(Us, s) < RANK_5
                 && (pos.pieces(PAWN) & (s + pawn_push(Us))))
@@ -366,6 +371,7 @@ namespace {
                 score -= BishopPawns * pe->pawns_on_same_color_squares(Us, s);
 
                 // Bonus for bishop on a long diagonal which can "see" both center squares
+				// -1.74 +/- 14.42
                 if (more_than_one(Center & (attacks_bb<BISHOP>(s, pos.pieces(PAWN)) | s)))
                     score += LongRangedBishop;
             }
@@ -387,7 +393,8 @@ namespace {
 
         if (Pt == ROOK)
         {
-			// 4.17 +/- 13.09
+			// failed http://tests.stockfishchess.org/tests/view/5a6842ae0ebc590d945d5888
+			// -1.68 [-4.08,0.86] (95%)
             // Bonus for aligning with enemy pawns on the same rank/file
             if (relative_rank(Us, s) >= RANK_5)
                 score += RookOnPawn * popcount(pos.pieces(Them, PAWN) & PseudoAttacks[ROOK][s]);
@@ -397,7 +404,9 @@ namespace {
                 score += RookOnFile[bool(pe->semiopen_file(Them, file_of(s)))];
 
             // Penalty when trapped by the king, even more if the king cannot castle
-            else if (mob <= 3)
+			// Failed http://tests.stockfishchess.org/tests/view/5a4a65f70ebc590ccbb8c503
+			// -4.77 [-8.65,-0.85] (95%)
+			else if (mob <= 3)
             {
                 Square ksq = pos.square<KING>(Us);
 
