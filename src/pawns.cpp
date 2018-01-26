@@ -182,9 +182,11 @@ namespace {
         else if (backward)
             score -= Backward, e->weakUnopposed[Us] += !opposed;
 
+		//ELO?4931963
         if (doubled && !supported)
             score -= Doubled;
 
+		//ELO?5577640
         if (lever)
             score += Lever[relative_rank(Us, s)];
     }
