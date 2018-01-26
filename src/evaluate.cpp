@@ -391,6 +391,7 @@ namespace {
         {
 			// failed http://tests.stockfishchess.org/tests/view/5a6842ae0ebc590d945d5888
 			// -1.68 [-4.08,0.86] (95%)
+			// 4.17 +/- 13.09
             // Bonus for aligning with enemy pawns on the same rank/file
             if (relative_rank(Us, s) >= RANK_5)
                 score += RookOnPawn * popcount(pos.pieces(Them, PAWN) & PseudoAttacks[ROOK][s]);
