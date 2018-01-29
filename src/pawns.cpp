@@ -191,6 +191,7 @@ namespace {
 		}
 
 		// 1.88 +/- 8.00 (5000x0.01)
+		// 1.18 +/- 8.03 (5000x0.01, 01/29/2018)
         if (doubled && !supported)
             score -= Doubled;
 

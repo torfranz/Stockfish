@@ -894,12 +894,14 @@ namespace {
     // -145.13 +/- 20.34
 	score +=  evaluate_passed_pawns<WHITE>() - evaluate_passed_pawns<BLACK>();
 
-	// 5.91 +/- 17.79
-    if (pos.non_pawn_material() >= SpaceThreshold)
+	// -8.62 + / -8.10 (5000x0.01, 01/29/2018)
+	if (pos.non_pawn_material() >= SpaceThreshold)
         score +=  evaluate_space<WHITE>()
                 - evaluate_space<BLACK>();
 
-    // 2.78 +/- 17.08 failed http://tests.stockfishchess.org/tests/view/589988960ebc59099759f3f1
+	// 3.75 +/- 7.97 (5000x0.01, 01/29/2018)
+    // 2.78 +/- 17.08 
+	// -6.71 [-11.20,-2.18] (95%) http://tests.stockfishchess.org/tests/view/589988960ebc59099759f3f1 (2017-02-07 08:43:01)
 	score += evaluate_initiative(eg_value(score));
 
 	// -11.47 +/- 17.69
