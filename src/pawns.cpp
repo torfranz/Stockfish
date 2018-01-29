@@ -173,20 +173,28 @@ namespace {
         }
 
         // Score this pawn
-        if (supported | phalanx)
-            score += Connected[opposed][bool(phalanx)][popcount(supported)][relative_rank(Us, s)];
+		if (supported | phalanx) {
+			// -27.43 +/- 8.17 (5000x0.01)
+			score += Connected[opposed][bool(phalanx)][popcount(supported)][relative_rank(Us, s)];
+		}
+		else if (!neighbours) {
+			// -8.06 +/- 8.09 (5000x0.01)
+			score -= Isolated;
+			e->weakUnopposed[Us] += !opposed;
+		}
 
-        else if (!neighbours)
-            score -= Isolated, e->weakUnopposed[Us] += !opposed;
+		else if (backward) {
+			// -8.62 +/- 7.99 (5000x0.01)
+			// -2.43 +/- 8.00 (5000x0.01)
+			score -= Backward;
+			e->weakUnopposed[Us] += !opposed;
+		}
 
-        else if (backward)
-            score -= Backward, e->weakUnopposed[Us] += !opposed;
-
-		//ELO?4931963
+		// 1.88 +/- 8.00 (5000x0.01)
         if (doubled && !supported)
             score -= Doubled;
 
-		//ELO?5577640
+		// 7.92 +/- 8.03 (5000x0.01)
         if (lever)
             score += Lever[relative_rank(Us, s)];
     }
