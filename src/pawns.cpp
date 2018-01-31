@@ -294,7 +294,7 @@ Score Entry::do_king_safety(const Position& pos, Square ksq) {
 
   Value bonus = shelter_storm<Us>(pos, ksq);
 
-  // ELO?5298149
+  // -11.61 +/- 8.04 (5000x0.01, 01/31/2018)
   // If we can castle use the bonus after the castling if it is bigger
   if (pos.can_castle(MakeCastling<Us, KING_SIDE>::right))
       bonus = std::max(bonus, shelter_storm<Us>(pos, relative_square(Us, SQ_G1)));
