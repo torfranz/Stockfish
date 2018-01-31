@@ -582,6 +582,8 @@ namespace {
     // Add a bonus according to the kind of attacking pieces
     if (defended | weak)
     {
+		// Remove ThreatByRank
+		// -1.38 [-3.39,0.76] (95%) (http://tests.stockfishchess.org/tests/view/59fca7f20ebc590ccbb8a13f, 2017-11-03 17:31:29)
         b = (defended | weak) & (attackedBy[Us][KNIGHT] | attackedBy[Us][BISHOP]);
         while (b)
         {
@@ -602,11 +604,14 @@ namespace {
 
         score += Hanging * popcount(weak & ~attackedBy[Them][ALL_PIECES]);
 
+		// -3.82 [-7.28,-0.30] (95%) (http://tests.stockfishchess.org/tests/view/5a4a641f0ebc590ccbb8c4f7, 2018-01-01 16:38:55)
         b = weak & attackedBy[Us][KING];
         if (b)
             score += ThreatByKing[more_than_one(b)];
     }
 
+	// -3.15 [-6.51,0.29] (95%) (http://tests.stockfishchess.org/tests/view/5a6a151e0ebc590d945d596a, 2018-01-25 20:50:17)
+	// -0.42 +/- 7.98 (5000x0.01, 01/31/2018)
     // Bonus for opponent unopposed weak pawns
     if (pos.pieces(Us, ROOK, QUEEN))
         score += WeakUnopposedPawn * pe->weak_unopposed(Them);
