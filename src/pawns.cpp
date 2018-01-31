@@ -43,12 +43,6 @@ namespace {
   // Doubled pawn penalty
   const Score Doubled = S(18, 38);
 
-  // Lever bonus by rank
-  const Score Lever[RANK_NB] = {
-    S( 0,  0), S( 0,  0), S(0, 0), S(0, 0),
-    S(17, 16), S(33, 32), S(0, 0), S(0, 0)
-  };
-
   // Weakness of our pawn shelter in front of the king by [isKingFile][distance from edge][rank].
   // RANK_1 = 0 is used for files where we have no pawns or our pawn is behind our king.
   const Value ShelterWeakness[][int(FILE_NB) / 2][RANK_NB] = {
@@ -192,12 +186,10 @@ namespace {
 
 		// 1.88 +/- 8.00 (5000x0.01)
 		// 1.18 +/- 8.03 (5000x0.01, 01/29/2018)
+		// -2.46 [-5.19,0.34] (95%) (http://tests.stockfishchess.org/tests/view/5a304d6b0ebc590ccbb8bc9e, 2017-12-12 21:43:07)
+		// -2.75 [-5.85,0.45] (95%) (http://tests.stockfishchess.org/tests/view/5a6f5d620ebc590297c36c12, 2018-01-29 17:44:02)
         if (doubled && !supported)
             score -= Doubled;
-
-		// 7.92 +/- 8.03 (5000x0.01)
-        if (lever)
-            score += Lever[relative_rank(Us, s)];
     }
 
     return score;
