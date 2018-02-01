@@ -373,6 +373,7 @@ namespace {
 
                 // Bonus for bishop on a long diagonal which can "see" both center squares
 				// -1.74 +/- 14.42
+				// ELO: 1.98 +-4.6 (95%) LOS: 80.2% (http://tests.stockfishchess.org/tests/view/5a72ff7e0ebc5902971a9655)
                 if (more_than_one(Center & (attacks_bb<BISHOP>(s, pos.pieces(PAWN)) | s)))
                     score += LongRangedBishop;
             }
@@ -396,6 +397,7 @@ namespace {
         {
 			// failed http://tests.stockfishchess.org/tests/view/5a6842ae0ebc590d945d5888
 			// -1.68 [-4.08,0.86] (95%)
+			// ELO: -2.61 +-4.6 (95%) LOS: 13.2% (http://tests.stockfishchess.org/tests/view/5a73024b0ebc5902971a9658)
             // Bonus for aligning with enemy pawns on the same rank/file
             if (relative_rank(Us, s) >= RANK_5)
                 score += RookOnPawn * popcount(pos.pieces(Them, PAWN) & PseudoAttacks[ROOK][s]);
@@ -407,6 +409,7 @@ namespace {
             // Penalty when trapped by the king, even more if the king cannot castle
 			// Failed http://tests.stockfishchess.org/tests/view/5a4a65f70ebc590ccbb8c503
 			// -4.77 [-8.65,-0.85] (95%)
+			// ELO: -8.24 +-4.6 (95%) LOS: 0.0% (http://tests.stockfishchess.org/tests/view/5a730f6a0ebc5902971a9662)
 			else if (mob <= 3)
             {
                 Square ksq = pos.square<KING>(Us);
