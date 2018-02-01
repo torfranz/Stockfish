@@ -357,8 +357,8 @@ namespace {
 
 			// Failed http://tests.stockfishchess.org/tests/view/59f6e7480ebc590ccbb89ca0
 			// -0.99 [-2.65,0.83] (95%)
-			// -6.25 +/- 17.91 1000x0.01 NEW
 			// 0.14 +/- 8.08 5000x0.01 NEW
+			// ELO: 0.35 +-4.5 (95%) LOS: 56.0%		Total: 10000 W : 2217 L : 2207 D : 5576 (http://tests.stockfishchess.org/tests/view/5a723b850ebc590f2c86e9e5)
             // Bonus when behind a pawn
             if (    relative_rank(Us, s) < RANK_5
                 && (pos.pieces(PAWN) & (s + pawn_push(Us))))
@@ -367,7 +367,8 @@ namespace {
             if (Pt == BISHOP)
             {
 				// -10.77 +/- 13.62
-                // Penalty for pawns on the same color square as the bishop
+				// ELO: -10.57 + -4.6 (95 % ) LOS : 0.0% (http://tests.stockfishchess.org/tests/view/5a7262390ebc590f2c86e9fc)
+				// Penalty for pawns on the same color square as the bishop
                 score -= BishopPawns * pe->pawns_on_same_color_squares(Us, s);
 
                 // Bonus for bishop on a long diagonal which can "see" both center squares
