@@ -181,15 +181,17 @@ namespace {
   // friendly pawn on the rook file.
   const Score RookOnFile[] = { S(20, 7), S(45, 20) };
 
-  // ThreatByMinor/ByRook[attacked PieceType] contains bonuses according to
+  // ThreatByMinor/ByRook[undefended/defended][attacked PieceType] contains bonuses according to
   // which piece type attacks which one. Attacks on lesser pieces which are
   // pawn-defended are not considered.
-  const Score ThreatByMinor[PIECE_TYPE_NB] = {
-    S(0, 0), S(0, 33), S(45, 43), S(46, 47), S(72, 107), S(48, 118)
+  const Score ThreatByMinor[2][PIECE_TYPE_NB] = {
+	  { S(0, 0), S(0, 13), S(25, 23), S(26, 27), S(52, 87), S(28, 98) },
+	  { S(0, 0), S(0, 53), S(65, 63), S(66, 67), S(92, 127), S(68, 138) }
   };
 
-  const Score ThreatByRook[PIECE_TYPE_NB] = {
-    S(0, 0), S(0, 25), S(40, 62), S(40, 59), S(0, 34), S(35, 48)
+  const Score ThreatByRook[2][PIECE_TYPE_NB] = {
+	  { S(0, 0), S(0,  5), S(20, 42), S(20, 39), S(0, 14), S(15, 28) },
+      { S(0, 0), S(0, 45), S(60, 82), S(60, 79), S(0, 54), S(55, 68) }
   };
 
   // ThreatByKing[on one/on many] contains bonuses for king attacks on
@@ -569,23 +571,41 @@ namespace {
     // Add a bonus according to the kind of attacking pieces
     if (defended | weak)
     {
-        b = (defended | weak) & (attackedBy[Us][KNIGHT] | attackedBy[Us][BISHOP]);
-        while (b)
-        {
-            Square s = pop_lsb(&b);
-            score += ThreatByMinor[type_of(pos.piece_on(s))];
-            if (type_of(pos.piece_on(s)) != PAWN)
-                score += ThreatByRank * (int)relative_rank(Them, s);
-        }
+		const Square* knights = pos.squares<KNIGHT>(Us);
+		Square knightSquare;
+		while ((knightSquare = *knights++) != SQ_NONE) {
+			b = pos.attacks_from<KNIGHT>(knightSquare) & (defended | weak);
+			while (b) {
+				Square s = pop_lsb(&b);
+				score += ThreatByMinor[!!(attackedBy[Us][ALL_PIECES] & knightSquare)][type_of(pos.piece_on(s))];
+				if (type_of(pos.piece_on(s)) != PAWN)
+					score += ThreatByRank * (int)relative_rank(Them, s);
+			}
+		}
 
-        b = (pos.pieces(Them, QUEEN) | weak) & attackedBy[Us][ROOK];
-        while (b)
-        {
-            Square s = pop_lsb(&b);
-            score += ThreatByRook[type_of(pos.piece_on(s))];
-            if (type_of(pos.piece_on(s)) != PAWN)
-                score += ThreatByRank * (int)relative_rank(Them, s);
-        }
+		const Square* bishops = pos.squares<BISHOP>(Us);
+		Square bishopSquare;
+		while ((bishopSquare = *bishops++) != SQ_NONE) {
+			b = pos.attacks_from<BISHOP>(bishopSquare) & (defended | weak);
+			while (b) {
+				Square s = pop_lsb(&b);
+				score += ThreatByMinor[!!(attackedBy[Us][ALL_PIECES] & bishopSquare)][type_of(pos.piece_on(s))];
+				if (type_of(pos.piece_on(s)) != PAWN)
+					score += ThreatByRank * (int)relative_rank(Them, s);
+			}
+		}
+
+		const Square* rooks = pos.squares<ROOK>(Us);
+		Square rooksSquare;
+		while ((rooksSquare = *rooks++) != SQ_NONE) {
+			b = pos.attacks_from<ROOK>(rooksSquare) & (pos.pieces(Them, QUEEN) | weak);
+			while (b) {
+				Square s = pop_lsb(&b);
+				score += ThreatByRook[!!(attackedBy[Us][ALL_PIECES] & rooksSquare)][type_of(pos.piece_on(s))];
+				if (type_of(pos.piece_on(s)) != PAWN)
+					score += ThreatByRank * (int)relative_rank(Them, s);
+			}
+		}
 
         score += Hanging * popcount(weak & ~attackedBy[Them][ALL_PIECES]);
 
