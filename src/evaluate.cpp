@@ -423,6 +423,7 @@ namespace {
         if (Pt == QUEEN)
         {
 			// -4.52 +/- 13.31
+			// ELO: -6.36 +-4.6 (95%) LOS: 0.3% (http://tests.stockfishchess.org/tests/view/5a73900b0ebc5902971a96a8)
 			// Penalty if any relative pin or discovered attack against the queen
             Bitboard pinners;
             if (pos.slider_blockers(pos.pieces(Them, ROOK, BISHOP), s, pinners))
@@ -523,6 +524,7 @@ namespace {
     assert(((Us == WHITE ? b << 4 : b >> 4) & b) == 0);
     assert(popcount(Us == WHITE ? b << 4 : b >> 4) == popcount(b));
 
+	// ELO: -2.19 +-4.6 (95%) LOS: 17.7% (http://tests.stockfishchess.org/tests/view/5a7399f10ebc5902971a96b3)
     // Secondly, add the squares which are attacked twice in that flank and
     // which are not defended by our pawns.
     b =  (Us == WHITE ? b << 4 : b >> 4)
@@ -530,6 +532,7 @@ namespace {
 
     score -= CloseEnemies * popcount(b);
 
+	// ELO: -1.29 +-4.5 (95%) LOS: 28.9% (http://tests.stockfishchess.org/tests/view/5a73a7000ebc5902971a96b6)
     // Penalty when our king is on a pawnless flank
     if (!(pos.pieces(PAWN) & KingFlank[kf]))
         score -= PawnlessFlank;
