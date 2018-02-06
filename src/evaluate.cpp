@@ -838,19 +838,19 @@ namespace {
     if (me->specialized_eval_exists())
         return me->evaluate(pos);
 
-    // Initialize score by reading the incrementally updated scores included in
+	// Initialize score by reading the incrementally updated scores included in
     // the position object (material + piece square tables) and the material
     // imbalance. Score is computed internally from the white point of view.
     Score score = pos.psq_score() + me->imbalance() + Eval::Contempt;
 
+	// Early exit if score is high
+	Value v = (mg_value(score) + eg_value(score)) / 2;
+	if (abs(v) > LazyThreshold)
+		return pos.side_to_move() == WHITE ? v : -v;
+
     // Probe the pawn hash table
     pe = Pawns::probe(pos);
     score += pe->pawns_score();
-
-    // Early exit if score is high
-    Value v = (mg_value(score) + eg_value(score)) / 2;
-    if (abs(v) > LazyThreshold)
-       return pos.side_to_move() == WHITE ? v : -v;
 
     // Main evaluation begins here
 
@@ -878,6 +878,7 @@ namespace {
                 - evaluate_space<BLACK>();
 
     score += evaluate_initiative(eg_value(score));
+
 
     // Interpolate between a middlegame and a (scaled by 'sf') endgame score
     ScaleFactor sf = evaluate_scale_factor(eg_value(score));
