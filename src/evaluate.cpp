@@ -232,6 +232,7 @@ namespace {
   const Score ThreatByAttackOnQueen = S( 42, 21);
   const Score HinderPassedPawn      = S(  8,  1);
   const Score TrappedBishopA1H1     = S( 50, 50);
+  const Score UndefendedPieces		= S( 15, 15);
 
   #undef S
   #undef V
@@ -873,6 +874,11 @@ namespace {
 
     score +=  evaluate_passed_pawns<WHITE>()
             - evaluate_passed_pawns<BLACK>();
+
+	// Undefended pieces
+	int cw = popcount((pos.pieces(WHITE) ^ pos.pieces(WHITE, KING)) & ~attackedBy[WHITE][ALL_PIECES]);
+	int cb = popcount((pos.pieces(BLACK) ^ pos.pieces(BLACK, KING)) & ~attackedBy[BLACK][ALL_PIECES]);
+	score -= UndefendedPieces * (cw - cb);
 
     if (pos.non_pawn_material() >= SpaceThreshold)
         score +=  evaluate_space<WHITE>()
