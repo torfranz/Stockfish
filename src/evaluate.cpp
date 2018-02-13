@@ -539,6 +539,7 @@ namespace {
 
     Bitboard b, weak, defended, stronglyProtected, safeThreats;
     Score score = SCORE_ZERO;
+	int hangingCount = 0, undefendedCount = 0;
 
     // Non-pawn enemies attacked by a pawn
     weak = (pos.pieces(Them) ^ pos.pieces(Them, PAWN)) & attackedBy[Us][PAWN];
@@ -567,6 +568,9 @@ namespace {
           & ~stronglyProtected
           &  attackedBy[Us][ALL_PIECES];
 
+	// their undefended
+	undefendedCount = popcount((pos.pieces(Them) ^ pos.pieces(Them, KING)) & ~attackedBy[Them][ALL_PIECES]);
+
     // Add a bonus according to the kind of attacking pieces
     if (defended | weak)
     {
@@ -588,14 +592,19 @@ namespace {
                 score += ThreatByRank * (int)relative_rank(Them, s);
         }
 
-        score += Hanging * popcount(weak & ~attackedBy[Them][ALL_PIECES]);
+		hangingCount = popcount(weak & ~attackedBy[Them][ALL_PIECES]);
+		assert(undefendedCount >= hangingCount);
+		score += Hanging * hangingCount;
 
         b = weak & attackedBy[Us][KING];
         if (b)
             score += ThreatByKing[more_than_one(b)];
     }
 
-    // Bonus for opponent unopposed weak pawns
+	// score all remaining undefended but not hanging pieces
+	score += UndefendedPieces * (undefendedCount - hangingCount);
+
+	// Bonus for opponent unopposed weak pawns
     if (pos.pieces(Us, ROOK, QUEEN))
         score += WeakUnopposedPawn * pe->weak_unopposed(Them);
 
@@ -875,12 +884,7 @@ namespace {
     score +=  evaluate_passed_pawns<WHITE>()
             - evaluate_passed_pawns<BLACK>();
 
-	// Undefended pieces
-	int cw = popcount((pos.pieces(WHITE) ^ pos.pieces(WHITE, KING)) & ~attackedBy[WHITE][ALL_PIECES]);
-	int cb = popcount((pos.pieces(BLACK) ^ pos.pieces(BLACK, KING)) & ~attackedBy[BLACK][ALL_PIECES]);
-	score -= UndefendedPieces * (cw - cb);
-
-    if (pos.non_pawn_material() >= SpaceThreshold)
+	if (pos.non_pawn_material() >= SpaceThreshold)
         score +=  evaluate_space<WHITE>()
                 - evaluate_space<BLACK>();
 
