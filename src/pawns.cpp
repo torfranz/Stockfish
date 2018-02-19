@@ -98,8 +98,7 @@ namespace {
     Square s;
     bool opposed, backward;
     Score score = SCORE_ZERO;
-    const Square* pl = pos.squares<PAWN>(Us);
-
+    
     Bitboard ourPawns   = pos.pieces(  Us, PAWN);
     Bitboard theirPawns = pos.pieces(Them, PAWN);
 
@@ -111,8 +110,10 @@ namespace {
     e->pawnsOnSquares[Us][WHITE] = pos.count<PAWN>(Us) - e->pawnsOnSquares[Us][BLACK];
 
     // Loop through all pawns of the current color and score each pawn
-    while ((s = *pl++) != SQ_NONE)
-    {
+	for (Bitboard pawns = ourPawns; pawns; )
+	{
+		s = pop_lsb(&pawns);
+
         assert(pos.piece_on(s) == make_piece(Us, PAWN));
 
         File f = file_of(s);

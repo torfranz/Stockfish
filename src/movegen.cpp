@@ -231,10 +231,10 @@ namespace {
 
     assert(Pt != KING && Pt != PAWN);
 
-    const Square* pl = pos.squares<Pt>(us);
+    for (Bitboard pieces = pos.pieces(us, Pt); pieces; )
+	{
+		Square from = pop_lsb(&pieces);
 
-    for (Square from = *pl; from != SQ_NONE; from = *++pl)
-    {
         if (Checks)
         {
             if (    (Pt == BISHOP || Pt == ROOK || Pt == QUEEN)
