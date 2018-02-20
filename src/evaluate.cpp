@@ -179,6 +179,7 @@ namespace {
   const Score TrappedRook       = S( 92,  0);
   const Score WeakQueen         = S( 50, 10);
   const Score WeakUnopposedPawn = S(  5, 25);
+  const Score CapturablePawnPenalty = S(50, 0);
 
 #undef S
 
@@ -409,6 +410,8 @@ namespace {
   Score Evaluation<T>::king() const {
 
     const Color    Them = (Us == WHITE ? BLACK : WHITE);
+	const Direction Left = (Them == WHITE ? NORTH_WEST : SOUTH_EAST);
+	const Direction Right = (Them == WHITE ? NORTH_EAST : SOUTH_WEST);
     const Bitboard Camp = (Us == WHITE ? AllSquares ^ Rank6BB ^ Rank7BB ^ Rank8BB
                                        : AllSquares ^ Rank1BB ^ Rank2BB ^ Rank3BB);
 
@@ -417,6 +420,19 @@ namespace {
 
     // King shelter and enemy pawns storm
     Score score = pe->king_safety<Us>(pos, ksq);
+
+	// if enemy king is not on our kings file (and their neighbouring files) reduce safety for every pawn on these files
+	// which can be captured by enemy pawns from the same files
+	File center = std::max(FILE_B, std::min(FILE_G, file_of(ksq)));
+	b1 = file_bb(File(center - 1)) | file_bb(File(center)) | file_bb(File(center + 1));
+	if (!(pos.pieces(Them, KING) & b1))
+	{
+		b = pos.pieces(Them, PAWN) & b1;
+		b = (shift<Right>(b) | shift<Left>(b));
+
+		if (pos.pieces(Us, PAWN) & b & b1)
+			score -= CapturablePawnPenalty;
+	}
 
     // Main king safety evaluation
     if (kingAttackersCount[Them] > 1 - pos.count<QUEEN>(Them))

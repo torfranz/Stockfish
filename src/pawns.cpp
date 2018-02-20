@@ -79,8 +79,6 @@ namespace {
       { V(21),  V(  23), V( 116), V(41), V(15) } }
   };
 
-  const Value CapturablePawnPenalty = V(45);
-
   // Max bonus for king safety. Corresponds to start position with all the pawns
   // in front of the king and no enemy pawn on the horizon.
   const Value MaxSafetyBonus = V(258);
@@ -241,9 +239,7 @@ template<Color Us>
 Value Entry::shelter_storm(const Position& pos, Square ksq) {
   
   const Color Them = (Us == WHITE ? BLACK : WHITE);
-  const Direction Left = (Them == WHITE ? NORTH_WEST : SOUTH_EAST);
-  const Direction Right = (Them == WHITE ? NORTH_EAST : SOUTH_WEST);
-
+  
   enum { BlockedByKing, Unopposed, BlockedByPawn, Unblocked };
 
   Bitboard b = pos.pieces(PAWN) & (forward_ranks_bb(Us, ksq) | rank_bb(ksq));
@@ -269,19 +265,6 @@ Value Entry::shelter_storm(const Position& pos, Square ksq) {
                  [d][rkThem];
   }
 
-  // if enemy king is not on our kings file (and their neighbouring files) reduce safety for every pawn on these files
-  // which can be captured by enemy pawns from the same files
-  Bitboard kingFiles = file_bb(File(center - 1)) | file_bb(File(center)) | file_bb(File(center + 1));
-  if(!(pos.pieces(Them, KING) & kingFiles))
-  {
-	  b = pos.pieces(Them, PAWN) & kingFiles;
-	  b = (shift<Right>(b) | shift<Left>(b));
-
-	  if (pos.pieces(Us, PAWN) & kingFiles & b)
-         safety -= CapturablePawnPenalty;
-	  
-  }
-  
   return safety;
 }
 
