@@ -85,6 +85,19 @@ namespace {
     KingSide,    KingSide,  KingSide
   };
 
+  // Files which are critical pawn files for king defense
+  // Files towards the center can usually defended more easily than to the egde of the board
+  const Bitboard KingPawnFiles[FILE_NB] = {
+	  FileABB | FileBBB,
+	  FileABB | FileBBB, 
+	  FileABB | FileBBB | FileCBB,
+	  FileCBB | FileDBB | FileEBB,
+	  FileDBB | FileEBB | FileFBB,
+	  FileFBB | FileGBB | FileHBB,
+	  FileGBB | FileHBB,
+	  FileGBB | FileHBB,
+  };
+
   // Threshold for lazy and space evaluation
   const Value LazyThreshold  = Value(1500);
   const Value SpaceThreshold = Value(12222);
@@ -179,7 +192,7 @@ namespace {
   const Score TrappedRook       = S( 92,  0);
   const Score WeakQueen         = S( 50, 10);
   const Score WeakUnopposedPawn = S(  5, 25);
-  const Score CapturablePawn    = S(100, 0);
+  const Score CapturableKingPawn= S( 25,  0);
 
 #undef S
 
@@ -410,10 +423,10 @@ namespace {
   Score Evaluation<T>::king() const {
 
     const Color    Them = (Us == WHITE ? BLACK : WHITE);
-	const Direction Left = (Them == WHITE ? NORTH_WEST : SOUTH_EAST);
-	const Direction Right = (Them == WHITE ? NORTH_EAST : SOUTH_WEST);
-    const Bitboard Camp = (Us == WHITE ? AllSquares ^ Rank6BB ^ Rank7BB ^ Rank8BB
+	const Bitboard Camp = (Us == WHITE ? AllSquares ^ Rank6BB ^ Rank7BB ^ Rank8BB
                                        : AllSquares ^ Rank1BB ^ Rank2BB ^ Rank3BB);
+	const Bitboard OurHalf = (Us == WHITE ? Rank1BB | Rank2BB | Rank3BB | Rank4BB
+		                                  : Rank8BB | Rank7BB | Rank6BB | Rank5BB);
 
     const Square ksq = pos.square<KING>(Us);
     Bitboard weak, b, b1, b2, safe, unsafeChecks;
@@ -421,18 +434,13 @@ namespace {
     // King shelter and enemy pawns storm
     Score score = pe->king_safety<Us>(pos, ksq);
 
-	// if enemy king is not on our kings file (and their neighbouring files) reduce safety for every pawn on these files
-	// which can be captured by enemy pawns from the same files
-	File center = std::max(FILE_B, std::min(FILE_G, file_of(ksq)));
-	b1 = file_bb(File(center - 1)) | file_bb(File(center)) | file_bb(File(center + 1));
-	if (!(pos.pieces(Them, KING) & b1))
-	{
-		b = pos.pieces(Them, PAWN) & b1;
-		b = (shift<Right>(b) | shift<Left>(b));
-
-		if (pos.pieces(Us, PAWN) & b & b1)
-			score -= CapturablePawn;
-	}
+	// if our king is in our half and can not easily escape with castling and enemy king is on different files
+	// give penalty when a pawn on the king files in our half can be captured by an enemy pawn
+	if (   (OurHalf & ksq) 
+		&& !pos.can_castle(Us) 
+		&& !(KingPawnFiles[file_of(ksq)] & pos.square<KING>(Them))
+		&& (pos.pieces(Us, PAWN) & OurHalf & attackedBy[Them][PAWN] & KingPawnFiles[file_of(ksq)]))
+		   score -= CapturableKingPawn;
 
     // Main king safety evaluation
     if (kingAttackersCount[Them] > 1 - pos.count<QUEEN>(Them))
