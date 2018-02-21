@@ -20,7 +20,6 @@
 
 #include <algorithm>
 #include <cassert>
-#include <iostream>
 
 #include "bitboard.h"
 #include "pawns.h"
@@ -237,9 +236,9 @@ Entry* probe(const Position& pos) {
 
 template<Color Us>
 Value Entry::shelter_storm(const Position& pos, Square ksq) {
-  
+
   const Color Them = (Us == WHITE ? BLACK : WHITE);
-  
+
   enum { BlockedByKing, Unopposed, BlockedByPawn, Unblocked };
 
   Bitboard b = pos.pieces(PAWN) & (forward_ranks_bb(Us, ksq) | rank_bb(ksq));

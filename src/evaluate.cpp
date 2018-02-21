@@ -179,7 +179,7 @@ namespace {
   const Score TrappedRook       = S( 92,  0);
   const Score WeakQueen         = S( 50, 10);
   const Score WeakUnopposedPawn = S(  5, 25);
-  const Score CapturablePawnPenalty = S(50, 0);
+  const Score CapturablePawn    = S(100, 0);
 
 #undef S
 
@@ -431,7 +431,7 @@ namespace {
 		b = (shift<Right>(b) | shift<Left>(b));
 
 		if (pos.pieces(Us, PAWN) & b & b1)
-			score -= CapturablePawnPenalty;
+			score -= CapturablePawn;
 	}
 
     // Main king safety evaluation
