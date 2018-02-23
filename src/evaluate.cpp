@@ -581,12 +581,13 @@ namespace {
 	// squares must not be defended by pawns or minors or majors/king (and not supported by a pawn or another piece) to threat a real fork
 	b = attackedBy[Us][KNIGHT]
 		& ~(  (attackedBy[Them][PAWN] | attackedBy[Them][KNIGHT] | attackedBy[Them][BISHOP])
-			| (   (attackedBy[Them][KING] | attackedBy[Them][ROOK] | attackedBy[Them][QUEEN]))
-			   & ~(attackedBy[Us][PAWN] | attackedBy2[Us]));
+			| (   (attackedBy[Them][KING] | attackedBy[Them][ROOK] | attackedBy[Them][QUEEN])
+			   & ~(attackedBy[Us][PAWN] | attackedBy2[Us])));
 
 	while (b)
 	{
 		s = pop_lsb(&b);
+		dbg_hit_on(more_than_one(pos.attacks_from<KNIGHT>(s) & (pos.pieces(Them, KING) | pos.pieces(Them, ROOK) | pos.pieces(Them, QUEEN))));
 		if (more_than_one(pos.attacks_from<KNIGHT>(s) & (pos.pieces(Them, KING) | pos.pieces(Them, ROOK) | pos.pieces(Them, QUEEN)))) {
 			score += ThreatByFork;
 		}
