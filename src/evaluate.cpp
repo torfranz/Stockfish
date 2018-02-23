@@ -23,6 +23,7 @@
 #include <cstring>   // For std::memset
 #include <iomanip>
 #include <sstream>
+#include <iostream>
 
 #include "bitboard.h"
 #include "evaluate.h"
@@ -381,7 +382,7 @@ namespace {
                 score += RookOnFile[bool(pe->semiopen_file(Them, file_of(s)))];
 
             // Penalty when trapped by the king, even more if the king cannot castle
-            else if (mob <= 3)
+            else if (mob <= 2)
             {
                 File kf = file_of(pos.square<KING>(Us));
                 if ((kf < FILE_E) == (file_of(s) < kf))
@@ -516,6 +517,7 @@ namespace {
 
     Bitboard b, weak, defended, nonPawnEnemies, stronglyProtected, safeThreats;
     Score score = SCORE_ZERO;
+	Square s;
 
     // Non-pawn enemies attacked by a pawn
     nonPawnEnemies = pos.pieces(Them) ^ pos.pieces(Them, PAWN);
@@ -548,7 +550,7 @@ namespace {
         b = (defended | weak) & (attackedBy[Us][KNIGHT] | attackedBy[Us][BISHOP]);
         while (b)
         {
-            Square s = pop_lsb(&b);
+            s = pop_lsb(&b);
             score += ThreatByMinor[type_of(pos.piece_on(s))];
             if (type_of(pos.piece_on(s)) != PAWN)
                 score += ThreatByRank * (int)relative_rank(Them, s);
@@ -557,7 +559,7 @@ namespace {
         b = (pos.pieces(Them, QUEEN) | weak) & attackedBy[Us][ROOK];
         while (b)
         {
-            Square s = pop_lsb(&b);
+            s = pop_lsb(&b);
             score += ThreatByRook[type_of(pos.piece_on(s))];
             if (type_of(pos.piece_on(s)) != PAWN)
                 score += ThreatByRank * (int)relative_rank(Them, s);
@@ -574,6 +576,22 @@ namespace {
     if (pos.pieces(Us, ROOK, QUEEN))
         score += WeakUnopposedPawn * pe->weak_unopposed(Them);
 
+	// Find safe locations where our knights could give a fork in next move
+	// squares must not be defended by pawns or minors or majors/king (and not supported by a pawn or another piece) to threat a real fork
+	b = attackedBy[Us][KNIGHT]
+		& ~((attackedBy[Them][PAWN] | attackedBy[Them][KNIGHT] | attackedBy[Them][BISHOP])
+			| ((attackedBy[Them][KING] | attackedBy[Them][ROOK] | attackedBy[Them][QUEEN]))
+			& ~(attackedBy[Us][PAWN] | attackedBy2[Us]));
+
+	while (b)
+	{
+		s = pop_lsb(&b);
+		dbg_hit_on(more_than_one(pos.attacks_from<KNIGHT>(s) & (pos.pieces(Them, KING) | pos.pieces(Them, ROOK) | pos.pieces(Them, QUEEN))));
+		if (more_than_one(pos.attacks_from<KNIGHT>(s) & (pos.pieces(Them, KING) | pos.pieces(Them, ROOK) | pos.pieces(Them, QUEEN)))) {
+			
+		}
+	}
+	
     // Find squares where our pawns can push on the next move
     b  = shift<Up>(pos.pieces(Us, PAWN)) & ~pos.pieces();
     b |= shift<Up>(b & TRank3BB) & ~pos.pieces();
