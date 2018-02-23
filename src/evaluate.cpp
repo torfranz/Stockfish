@@ -179,6 +179,7 @@ namespace {
   const Score TrappedBishopA1H1 = S( 50, 50);
   const Score TrappedRook       = S( 92,  0);
   const Score WeakQueen         = S( 50, 10);
+  const Score ThreatByFork      = S( 50, 50);
   const Score WeakUnopposedPawn = S(  5, 25);
 
 #undef S
@@ -579,16 +580,15 @@ namespace {
 	// Find safe locations where our knights could give a fork in next move
 	// squares must not be defended by pawns or minors or majors/king (and not supported by a pawn or another piece) to threat a real fork
 	b = attackedBy[Us][KNIGHT]
-		& ~((attackedBy[Them][PAWN] | attackedBy[Them][KNIGHT] | attackedBy[Them][BISHOP])
-			| ((attackedBy[Them][KING] | attackedBy[Them][ROOK] | attackedBy[Them][QUEEN]))
-			& ~(attackedBy[Us][PAWN] | attackedBy2[Us]));
+		& ~(  (attackedBy[Them][PAWN] | attackedBy[Them][KNIGHT] | attackedBy[Them][BISHOP])
+			| (   (attackedBy[Them][KING] | attackedBy[Them][ROOK] | attackedBy[Them][QUEEN]))
+			   & ~(attackedBy[Us][PAWN] | attackedBy2[Us]));
 
 	while (b)
 	{
 		s = pop_lsb(&b);
-		dbg_hit_on(more_than_one(pos.attacks_from<KNIGHT>(s) & (pos.pieces(Them, KING) | pos.pieces(Them, ROOK) | pos.pieces(Them, QUEEN))));
 		if (more_than_one(pos.attacks_from<KNIGHT>(s) & (pos.pieces(Them, KING) | pos.pieces(Them, ROOK) | pos.pieces(Them, QUEEN)))) {
-			
+			score += ThreatByFork;
 		}
 	}
 	
