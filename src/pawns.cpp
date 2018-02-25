@@ -40,8 +40,13 @@ namespace {
   // Connected pawn bonus by opposed, phalanx, #support and rank
   Score Connected[2][2][3][RANK_NB];
 
-  // Doubled pawn penalty
-  const Score Doubled[2] = { S(9, 19), S(13, 33) };
+  // Doubled pawn penalty, [Blocked][Neighbours]
+  const Score Doubled[2][2] = {
+	  // Not Blocked [NoNeighbours][Neighbours]
+	 { S(14, 23), S(9, 19) },
+	 // Blocked [NoNeighbours][Neighbours]
+     { S(23, 43), S(13, 33) },
+  };
 
   // Weakness of our pawn shelter in front of the king by [isKingFile][distance from edge][rank].
   // RANK_1 = 0 is used for files where we have no pawns or our pawn is behind our king.
@@ -176,8 +181,8 @@ namespace {
             score -= Backward, e->weakUnopposed[Us] += !opposed;
 
 		if (doubled && !supported)
-            score -= Doubled[(bool)blocked];
-    }
+            score -= Doubled[(bool)blocked][(bool)neighbours];
+	}
 
     return score;
   }
