@@ -383,7 +383,7 @@ namespace {
                 score += RookOnFile[bool(pe->semiopen_file(Them, file_of(s)))];
 
             // Penalty when trapped by the king, even more if the king cannot castle
-            else if (mob <= 2)
+            else if (mob <= 3)
             {
                 File kf = file_of(pos.square<KING>(Us));
                 if ((kf < FILE_E) == (file_of(s) < kf))
@@ -579,15 +579,14 @@ namespace {
 
 	// Find safe locations where our knights could give a fork in next move
 	// squares must not be defended by pawns or minors or majors/king (and not supported by a pawn or another piece) to threat a real fork
-	b = attackedBy[Us][KNIGHT]
-		& ~(  (attackedBy[Them][PAWN] | attackedBy[Them][KNIGHT] | attackedBy[Them][BISHOP])
-			| (   (attackedBy[Them][KING] | attackedBy[Them][ROOK] | attackedBy[Them][QUEEN])
-			   & ~(attackedBy[Us][PAWN] | attackedBy2[Us])));
+    b = attackedBy[Us][KNIGHT]
+		& ~((attackedBy[Them][PAWN] | attackedBy[Them][KNIGHT] | attackedBy[Them][BISHOP])
+			| ((attackedBy[Them][KING] | attackedBy[Them][ROOK] | attackedBy[Them][QUEEN])
+				& ~attackedBy[Us][ALL_PIECES]));
 
 	while (b)
 	{
 		s = pop_lsb(&b);
-		dbg_hit_on(more_than_one(pos.attacks_from<KNIGHT>(s) & (pos.pieces(Them, KING) | pos.pieces(Them, ROOK) | pos.pieces(Them, QUEEN))));
 		if (more_than_one(pos.attacks_from<KNIGHT>(s) & (pos.pieces(Them, KING) | pos.pieces(Them, ROOK) | pos.pieces(Them, QUEEN)))) {
 			score += ThreatByFork;
 		}
