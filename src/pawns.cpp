@@ -32,11 +32,11 @@ namespace {
   #define S(mg, eg) make_score(mg, eg)
 
   // Isolated pawn penalty
-  const Score Isolated = S(13, 18);
+  const Score Isolated = S(18, 33);
 
   // Backward pawn penalty
-  const Score Backward = S(24, 12);
-
+  const Score Backward = S(29, 27);
+  
   // Connected pawn bonus by opposed, phalanx, #support and rank
   Score Connected[2][2][3][RANK_NB];
 
@@ -101,7 +101,7 @@ namespace {
     Bitboard ourPawns   = pos.pieces(  Us, PAWN);
     Bitboard theirPawns = pos.pieces(Them, PAWN);
 
-    e->passedPawns[Us] = e->pawnAttacksSpan[Us] = e->weakUnopposed[Us] = 0;
+    e->passedPawns[Us] = e->pawnAttacksSpan[Us] = 0;
     e->semiopenFiles[Us] = 0xFF;
     e->kingSquares[Us]   = SQ_NONE;
     e->pawnAttacks[Us]   = pawn_attacks_bb<Us>(ourPawns);
@@ -165,14 +165,14 @@ namespace {
         }
 
         // Score this pawn
-        if (supported | phalanx)
-            score += Connected[opposed][bool(phalanx)][popcount(supported)][relative_rank(Us, s)];
+		if (supported | phalanx)
+			score += Connected[opposed][bool(phalanx)][popcount(supported)][relative_rank(Us, s)];
 
-        else if (!neighbours)
-            score -= Isolated, e->weakUnopposed[Us] += !opposed;
+		else if (!neighbours)
+			score -= Isolated;
 
-        else if (backward)
-            score -= Backward, e->weakUnopposed[Us] += !opposed;
+		else if (backward)
+			score -= Backward;
 
         if (doubled && !supported)
             score -= Doubled;

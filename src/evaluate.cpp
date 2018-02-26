@@ -178,8 +178,7 @@ namespace {
   const Score TrappedBishopA1H1 = S( 50, 50);
   const Score TrappedRook       = S( 92,  0);
   const Score WeakQueen         = S( 50, 10);
-  const Score WeakUnopposedPawn = S(  5, 25);
-
+  
 #undef S
 
   // Evaluation class computes and stores attacks tables and other working data
@@ -569,10 +568,6 @@ namespace {
         if (b)
             score += ThreatByKing[more_than_one(b)];
     }
-
-    // Bonus for enemy unopposed weak pawns
-    if (pos.pieces(Us, ROOK, QUEEN))
-        score += WeakUnopposedPawn * pe->weak_unopposed(Them);
 
     // Find squares where our pawns can push on the next move
     b  = shift<Up>(pos.pieces(Us, PAWN)) & ~pos.pieces();
