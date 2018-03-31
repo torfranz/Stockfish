@@ -45,8 +45,8 @@ struct Entry {
     return semiopenFiles[c] & (1 << f);
   }
 
-  int pawns_on_same_color_squares(Color c, Square s) const {
-    return pawnsOnSquares[c][bool(DarkSquares & s)];
+  int pawns_color_asymmetry(Color c, Square s) const {
+    return pawnsOnSquares[c][bool(DarkSquares & s)] - pawnsOnSquares[c][!bool(DarkSquares & s)];
   }
 
   template<Color Us>
