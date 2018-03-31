@@ -350,7 +350,7 @@ namespace {
             {
 				// Penalty according to number of more pawns on the same color square as the only bishop
 				if(pos.count<BISHOP>(Us) == 1)
-					score -= BishopPawns * pe->pawns_color_asymmetry(Us, s);
+					score -= BishopPawns * pe->pawns_on_same_color_squares(Us, s);
 
                 // Bonus for bishop on a long diagonal which can "see" both center squares
                 if (more_than_one(Center & (attacks_bb<BISHOP>(s, pos.pieces(PAWN)) | s)))
