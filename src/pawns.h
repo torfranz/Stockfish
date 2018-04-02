@@ -68,7 +68,7 @@ struct Entry {
   Bitboard pawnAttacksSpan[COLOR_NB];
   Square kingSquares[COLOR_NB];
   Score kingSafety[COLOR_NB];
-  int flankPhalanxInfo[COLOR_NB][2]; // [Color][queenside/kingside]
+  int phalanx[COLOR_NB]; // [Color][queenside/kingside]
   int weakUnopposed[COLOR_NB];
   int castlingRights[COLOR_NB];
   int semiopenFiles[COLOR_NB];

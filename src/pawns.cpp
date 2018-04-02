@@ -44,7 +44,7 @@ namespace {
   constexpr Score Doubled = S(18, 38);
 
   // Flank phalanx pawn penalty
-  constexpr Score FlankPawnScore = S(15, -45);
+  constexpr Score PhalanxPawns = S(4, 8);
 
   // Weakness of our pawn shelter in front of the king by [isKingFile][distance from edge][rank].
   // RANK_1 = 0 is used for files where we have no pawns or our pawn is behind our king.
@@ -94,10 +94,7 @@ namespace {
     constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
     constexpr Direction Up   = (Us == WHITE ? NORTH : SOUTH);
 
-	constexpr Bitboard KingSide = FileFBB | FileGBB | FileHBB;
-	constexpr Bitboard Center = FileDBB | FileEBB;
-
-    Bitboard b, neighbours, stoppers, doubled, supported, phalanx;
+	Bitboard b, neighbours, stoppers, doubled, supported, phalanx;
     Bitboard lever, leverPush;
     Square s;
     bool opposed, backward;
@@ -107,16 +104,13 @@ namespace {
     Bitboard ourPawns   = pos.pieces(  Us, PAWN);
     Bitboard theirPawns = pos.pieces(Them, PAWN);
 
-	// only build phalanx info if there are no pawns from either side in the center files
-	bool buildFlankPhalanxInfo = !(ourPawns & Center) && !(theirPawns & Center);
-
-    e->passedPawns[Us] = e->pawnAttacksSpan[Us] = e->weakUnopposed[Us] = 0;
+	e->passedPawns[Us] = e->pawnAttacksSpan[Us] = e->weakUnopposed[Us] = 0;
     e->semiopenFiles[Us] = 0xFF;
     e->kingSquares[Us]   = SQ_NONE;
     e->pawnAttacks[Us]   = pawn_attacks_bb<Us>(ourPawns);
     e->pawnsOnSquares[Us][BLACK] = popcount(ourPawns & DarkSquares);
     e->pawnsOnSquares[Us][WHITE] = pos.count<PAWN>(Us) - e->pawnsOnSquares[Us][BLACK];
-	e->flankPhalanxInfo[Us][0] = e->flankPhalanxInfo[Us][1] = 0;
+	e->phalanx[Us] = 0;
 	
     // Loop through all pawns of the current color and score each pawn
     while ((s = *pl++) != SQ_NONE)
@@ -179,8 +173,7 @@ namespace {
 			score += Connected[opposed][bool(phalanx)][popcount(supported)][relative_rank(Us, s)];
 
 			// if the pawns isn't weak count it as a flank phalanx pawn
-			if (buildFlankPhalanxInfo) 
-				e->flankPhalanxInfo[Us][bool(KingSide & s)]++;
+			e->phalanx[Us]++;
 		}
 
         else if (!neighbours)
@@ -235,8 +228,12 @@ Entry* probe(const Position& pos) {
       return e;
 
   e->key = key;
-  e->scores[WHITE] = evaluate<WHITE>(pos, e);
-  e->scores[BLACK] = evaluate<BLACK>(pos, e);
+  Score white = evaluate<WHITE>(pos, e);
+  Score black = evaluate<BLACK>(pos, e);
+  Score phalanxAsymmetryScore = PhalanxPawns * (e->phalanx[WHITE] - e->phalanx[BLACK]);
+
+  e->scores[WHITE] = white + phalanxAsymmetryScore;
+  e->scores[BLACK] = black - phalanxAsymmetryScore;
   e->openFiles = popcount(e->semiopenFiles[WHITE] & e->semiopenFiles[BLACK]);
   e->asymmetry = popcount(  (e->passedPawns[WHITE]   | e->passedPawns[BLACK])
                           | (e->semiopenFiles[WHITE] ^ e->semiopenFiles[BLACK]));
@@ -289,9 +286,6 @@ Value Entry::shelter_storm(const Position& pos, Square ksq) {
 
 template<Color Us>
 Score Entry::do_king_safety(const Position& pos, Square ksq) {
-  constexpr Bitboard QueenSide = FileABB | FileBBB | FileCBB;
-  constexpr Bitboard KingSide = FileFBB | FileGBB | FileHBB;
-  constexpr Color Them = (Us == WHITE ? BLACK : WHITE);
   kingSquares[Us] = ksq;
   castlingRights[Us] = pos.can_castle(Us);
   int minKingPawnDistance = 0;
@@ -309,20 +303,7 @@ Score Entry::do_king_safety(const Position& pos, Square ksq) {
   if (pos.can_castle(MakeCastling<Us, QUEEN_SIDE>::right))
       bonus = std::max(bonus, shelter_storm<Us>(pos, relative_square(Us, SQ_C1)));
   
-  Score score = make_score(bonus, -16 * minKingPawnDistance);
-
-  // if kings are on the same side of the board apply the flank score if the phalanx 
-  // of the other flank is smaller than the enemy one
-  if(    (   (QueenSide & ksq) 
-	      && (QueenSide & kingSquares[Them]) 
-	      && flankPhalanxInfo[Us][1] < flankPhalanxInfo[Them][1])
-	  ||     ((KingSide & ksq) 
-		  && (KingSide & kingSquares[Them]) 
-		  && flankPhalanxInfo[Us][0] < flankPhalanxInfo[Them][0])) {
-	  score += FlankPawnScore;
-  }
- 
-  return score;
+  return make_score(bonus, -16 * minKingPawnDistance);
 }
 
 // Explicit template instantiation
