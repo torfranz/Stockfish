@@ -129,6 +129,9 @@ namespace {
   // no (friendly) pawn on the rook file.
   constexpr Score RookOnFile[] = { S(20, 7), S(45, 20) };
 
+  // Agility scores -> in how many directions a piece can move
+  constexpr Score BishopAgility[] = { S(-36, -36), S(-12, -8), S(0, 0), S(8, 4), S(12, 8) };
+
   // ThreatByMinor/ByRook[attacked PieceType] contains bonuses according to
   // which piece type attacks which one. Attacks on lesser pieces which are
   // pawn-defended are not considered.
@@ -354,6 +357,10 @@ namespace {
                 // Bonus for bishop on a long diagonal which can "see" both center squares
                 if (more_than_one(Center & (attacks_bb<BISHOP>(s, pos.pieces(PAWN)) | s)))
                     score += LongDiagonalBishop;
+
+				// direction agility - all possible squares to move to, including enemy non pawns
+				b = attacks_bb<BISHOP>(s, pos.pieces()) & ~(pos.pieces(Us) | pos.pieces(Them, PAWN));
+				score += BishopAgility[popcount(BishopAgilityDirections[s] & b)];
             }
 
             // An important Chess960 pattern: A cornered bishop blocked by a friendly
