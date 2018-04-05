@@ -719,9 +719,9 @@ namespace {
   Score Evaluation<T>::space() const {
 
     constexpr Color Them = (Us == WHITE ? BLACK : WHITE);
-    const Bitboard SpaceMask =
-      Us == WHITE ? (CenterFiles & (Rank2BB | Rank3BB | Rank4BB)) | SQ_B5 | SQ_G5
-                  : (CenterFiles & (Rank7BB | Rank6BB | Rank5BB)) | SQ_B4 | SQ_G4;
+	constexpr Bitboard SpaceMask =
+      Us == WHITE ? (CenterFiles & (Rank2BB | Rank3BB | Rank4BB))
+                  : (CenterFiles & (Rank7BB | Rank6BB | Rank5BB));
 
     if (pos.non_pawn_material() < SpaceThreshold)
         return SCORE_ZERO;
@@ -734,15 +734,10 @@ namespace {
                    & ~attackedBy[Them][PAWN]
                    & (attackedBy[Us][ALL_PIECES] | ~attackedBy[Them][ALL_PIECES]);
 
-    // Find all squares which are at most three squares behind some friendly pawn
-    Bitboard behind = pos.pieces(Us, PAWN);
-    behind |= (Us == WHITE ? behind >>  8 : behind <<  8);
-    behind |= (Us == WHITE ? behind >> 16 : behind << 16);
-
-    int bonus = popcount(safe) + popcount(behind & safe);
+    int bonus = popcount(safe);
     int weight = pos.count<ALL_PIECES>(Us) - 2 * pe->open_files();
 
-    Score score = make_score(bonus * weight * weight / 16, 0);
+    Score score = make_score(bonus * weight * weight / 13, 0);
 
     if (T)
         Trace::add(SPACE, Us, score);
