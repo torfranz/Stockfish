@@ -720,8 +720,8 @@ namespace {
 
     constexpr Color Them = (Us == WHITE ? BLACK : WHITE);
 	constexpr Bitboard SpaceMask =
-      Us == WHITE ? (CenterFiles & (Rank2BB | Rank3BB | Rank4BB))
-                  : (CenterFiles & (Rank7BB | Rank6BB | Rank5BB));
+      Us == WHITE ? CenterFiles & (Rank2BB | Rank3BB | Rank4BB)
+                  : CenterFiles & (Rank7BB | Rank6BB | Rank5BB);
 
     if (pos.non_pawn_material() < SpaceThreshold)
         return SCORE_ZERO;
@@ -737,7 +737,7 @@ namespace {
     int bonus = popcount(safe);
     int weight = pos.count<ALL_PIECES>(Us) - 2 * pe->open_files();
 
-    Score score = make_score(bonus * weight * weight / 13, 0);
+    Score score = make_score(bonus * weight * weight / 14, 0);
 
     if (T)
         Trace::add(SPACE, Us, score);
