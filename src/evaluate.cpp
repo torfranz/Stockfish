@@ -719,9 +719,9 @@ namespace {
   Score Evaluation<T>::space() const {
 
     constexpr Color Them = (Us == WHITE ? BLACK : WHITE);
-    constexpr Bitboard SpaceMask =
-      Us == WHITE ? CenterFiles & (Rank2BB | Rank3BB | Rank4BB)
-                  : CenterFiles & (Rank7BB | Rank6BB | Rank5BB);
+    const Bitboard SpaceMask =
+      Us == WHITE ? (CenterFiles & (Rank2BB | Rank3BB | Rank4BB)) | SQ_B5 | SQ_G5
+                  : (CenterFiles & (Rank7BB | Rank6BB | Rank5BB)) | SQ_B4 | SQ_G4;
 
     if (pos.non_pawn_material() < SpaceThreshold)
         return SCORE_ZERO;
@@ -730,7 +730,7 @@ namespace {
     // SpaceMask. A square is unsafe if it is attacked by an enemy
     // pawn, or if it is undefended and attacked by an enemy piece.
     Bitboard safe =   SpaceMask
-                   & ~pos.pieces(Us, PAWN, QUEEN)
+                   & ~pos.pieces(Us, PAWN)
                    & ~attackedBy[Them][PAWN]
                    & (attackedBy[Us][ALL_PIECES] | ~attackedBy[Them][ALL_PIECES]);
 
