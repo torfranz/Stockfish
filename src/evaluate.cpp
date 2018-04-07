@@ -166,6 +166,7 @@ namespace {
   constexpr Score CloseEnemies       = S(  7,  0);
   constexpr Score Connectivity       = S(  3,  1);
   constexpr Score CorneredBishop     = S( 50, 50);
+  constexpr Score DangerZone         = S( 10,  0);
   constexpr Score Hanging            = S( 52, 30);
   constexpr Score HinderPassedPawn   = S(  8,  1);
   constexpr Score KnightOnQueen      = S( 21, 11);
@@ -242,6 +243,8 @@ namespace {
     // a white knight on g5 and black's king is on g8, this white knight adds 2
     // to kingAttacksCount[WHITE].
     int kingAttacksCount[COLOR_NB];
+
+	Bitboard minorAndHeavyAttacks[COLOR_NB];
   };
 
 
@@ -267,6 +270,9 @@ namespace {
     attackedBy[Us][PAWN] = pe->pawn_attacks(Us);
     attackedBy[Us][ALL_PIECES] = attackedBy[Us][KING] | attackedBy[Us][PAWN];
     attackedBy2[Us]            = attackedBy[Us][KING] & attackedBy[Us][PAWN];
+
+	// initialize piece attacks
+	minorAndHeavyAttacks[Us] = 0;
 
     // Init our king safety tables only if we are going to use them
     if (pos.non_pawn_material(Them) >= RookValueMg + KnightValueMg)
@@ -304,7 +310,7 @@ namespace {
     int mob;
 
     attackedBy[Us][Pt] = 0;
-
+	
     while ((s = *pl++) != SQ_NONE)
     {
         // Find attacked squares, including x-ray attacks for bishops and rooks
@@ -318,6 +324,7 @@ namespace {
         attackedBy2[Us] |= attackedBy[Us][ALL_PIECES] & b;
         attackedBy[Us][Pt] |= b;
         attackedBy[Us][ALL_PIECES] |= b;
+		minorAndHeavyAttacks[Us] |= b;
 
         if (b & kingRing[Them])
         {
@@ -614,6 +621,11 @@ namespace {
        & attackedBy[Us][ALL_PIECES]   & ~attackedBy2[Us]
        & attackedBy[Them][ALL_PIECES] & ~attackedBy2[Them];
     score += Overload * popcount(b);
+
+	// count number of squares within the mobility area where our pieces can go to 
+	// but which are attacked by enemy and no further defended by us
+	b = mobilityArea[Us] & minorAndHeavyAttacks[Us] & minorAndHeavyAttacks[Them] & ~attackedBy2[Us];
+	score -= DangerZone * popcount(b);
 
     if (T)
         Trace::add(THREAT, Us, score);
