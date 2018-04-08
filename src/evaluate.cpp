@@ -418,9 +418,13 @@ namespace {
 
 	  for (int index = 0; index < pos.count<Pt>(Us); ++index)
 	  {
-		  b =   pieceAttacks[Us][Pt - 2][index] 
-			  & mobilityArea[Us]
-			  & ~(pos.pieces(Us) | (attackedBy[Them][ALL_PIECES] & ~attackedBy2[Us]));
+		  b = pieceAttacks[Us][Pt - 2][index] & mobilityArea[Us];
+
+		  if (Pt == KNIGHT || Pt == BISHOP)
+			  b &= ~pos.pieces(Us, QUEEN);
+
+		  // remove those squares from the mobility area where enemy is attacking and we don't defend enough
+		  //b &= ~(attackedBy[Them][ALL_PIECES] & ~attackedBy2[Us]);
 
 		  mobilityScore[Us] += MobilityBonus[Pt - 2][popcount(b)];
 	  }
