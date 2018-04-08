@@ -171,6 +171,7 @@ namespace {
   constexpr Score KnightOnQueen      = S( 21, 11);
   constexpr Score LongDiagonalBishop = S( 22,  0);
   constexpr Score MinorBehindPawn    = S( 16,  0);
+  constexpr Score NoDefenderDuty     = S( 10,  0);
   constexpr Score Overload           = S( 10,  5);
   constexpr Score PawnlessFlank      = S( 20, 80);
   constexpr Score RookOnPawn         = S(  8, 24);
@@ -330,6 +331,11 @@ namespace {
                                              : popcount(b & mobilityArea[Us]);
 
         mobility[Us] += MobilityBonus[Pt - 2][mob];
+
+		// if piece is not bound to defending own non pawn pieces give it a bonus
+		if (   b 
+			&& !(b & (pos.pieces(Us, KNIGHT, BISHOP) | pos.pieces(Us, ROOK, QUEEN))))
+			score += NoDefenderDuty;
 
         // Penalty if the piece is far from the king
         score -= KingProtector[Pt - 2] * distance(s, pos.square<KING>(Us));
