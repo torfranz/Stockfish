@@ -201,8 +201,7 @@ namespace {
     template<Color Us> Score threats() const;
     template<Color Us> Score passed() const;
     template<Color Us> Score space() const;
-	template<Color Us> void mobility();
-	template<Color Us, PieceType Pt> void piece_mobility();
+	template<Color Us, PieceType Pt> void mobility();
     ScaleFactor scale_factor(Value eg) const;
     Score initiative(Value eg) const;
 
@@ -246,7 +245,7 @@ namespace {
     int kingAttacksCount[COLOR_NB];
 
 	// the mobility bitboards for each minor and major piece
-	Bitboard pieceMobility[COLOR_NB][4][10];
+	Bitboard pieceAttacks[COLOR_NB][4][10];
   };
 
 
@@ -317,7 +316,7 @@ namespace {
           : Pt ==   ROOK ? attacks_bb<  ROOK>(s, pos.pieces() ^ pos.pieces(QUEEN) ^ pos.pieces(Us, ROOK))
                          : pos.attacks_from<Pt>(s);
 
-        if (pos.blockers_for_king(Us) & s)
+		if (pos.blockers_for_king(Us) & s)
             b &= LineBB[pos.square<KING>(Us)][s];
 
         attackedBy2[Us] |= attackedBy[Us][ALL_PIECES] & b;
@@ -331,7 +330,7 @@ namespace {
             kingAttacksCount[Us] += popcount(b & attackedBy[Them][KING]);
         }
 
-		pieceMobility[Us][Pt - 2][pieceIndex++] = b & mobilityArea[Us];
+		pieceAttacks[Us][Pt - 2][pieceIndex++] = b;
 		
 		// Penalty if the piece is far from the king
         score -= KingProtector[Pt - 2] * distance(s, pos.square<KING>(Us));
@@ -413,31 +412,18 @@ namespace {
   }
 
   template<Tracing T> template<Color Us, PieceType Pt>
-  void Evaluation<T>::piece_mobility() {
+  void Evaluation<T>::mobility() {
 	  constexpr Color Them = (Us == WHITE ? BLACK : WHITE);
 	  Bitboard b;
 
 	  for (int index = 0; index < pos.count<Pt>(Us); ++index)
 	  {
-		  b = pieceMobility[Us][Pt - 2][index];
+		  b =   pieceAttacks[Us][Pt - 2][index] 
+			  & mobilityArea[Us]
+			  & ~(pos.pieces(Us) | (attackedBy[Them][ALL_PIECES] & ~attackedBy2[Us]));
 
-		  if (Pt == KNIGHT || Pt == BISHOP)
-			  b &= ~pos.pieces(Us, QUEEN);
-
-		  // remove those squares from the mobility area where enemy is attacking and we don't defend enough
-		  b &= ~(attackedBy[Them][ALL_PIECES] & ~attackedBy2[Us]);
-		  
 		  mobilityScore[Us] += MobilityBonus[Pt - 2][popcount(b)];
 	  }
-  }
-
-  template<Tracing T> template<Color Us>
-  void Evaluation<T>::mobility() {
-
-	  piece_mobility<Us, KNIGHT>();
-	  piece_mobility<Us, BISHOP>();
-	  piece_mobility<Us, ROOK>();
-	  piece_mobility<Us, QUEEN>();	  
   }
 
   // Evaluation::king() assigns bonuses and penalties to a king of a given color
@@ -901,8 +887,14 @@ namespace {
             + pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >()
             + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
 
-	mobility<WHITE>();
-	mobility<BLACK>();
+	mobility<WHITE, KNIGHT>();
+	mobility<BLACK, KNIGHT>();
+	mobility<WHITE, BISHOP>();
+	mobility<BLACK, BISHOP>();
+	mobility<WHITE, ROOK>();
+	mobility<BLACK, ROOK>();
+	mobility<WHITE, QUEEN>();
+	mobility<BLACK, QUEEN>();
 
 	score += mobilityScore[WHITE] - mobilityScore[BLACK];
 
