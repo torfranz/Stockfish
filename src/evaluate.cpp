@@ -414,6 +414,7 @@ namespace {
 
   template<Tracing T> template<Color Us, PieceType Pt>
   void Evaluation<T>::piece_mobility() {
+	  constexpr Color Them = (Us == WHITE ? BLACK : WHITE);
 	  Bitboard b;
 
 	  for (int index = 0; index < pos.count<Pt>(Us); ++index)
@@ -423,6 +424,9 @@ namespace {
 		  if (Pt == KNIGHT || Pt == BISHOP)
 			  b &= ~pos.pieces(Us, QUEEN);
 
+		  // remove those squares from the mobility area where enemy is attacking and we don't defend enough
+		  b &= ~(attackedBy[Them][ALL_PIECES] & ~attackedBy2[Us]);
+		  
 		  mobilityScore[Us] += MobilityBonus[Pt - 2][popcount(b)];
 	  }
   }
