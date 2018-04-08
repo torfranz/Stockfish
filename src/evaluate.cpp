@@ -201,6 +201,8 @@ namespace {
     template<Color Us> Score threats() const;
     template<Color Us> Score passed() const;
     template<Color Us> Score space() const;
+	template<Color Us> void mobility();
+	template<Color Us, PieceType Pt> void piece_mobility();
     ScaleFactor scale_factor(Value eg) const;
     Score initiative(Value eg) const;
 
@@ -208,7 +210,7 @@ namespace {
     Material::Entry* me;
     Pawns::Entry* pe;
     Bitboard mobilityArea[COLOR_NB];
-    Score mobility[COLOR_NB] = { SCORE_ZERO, SCORE_ZERO };
+	Score mobilityScore[COLOR_NB] = { SCORE_ZERO, SCORE_ZERO };
 
     // attackedBy[color][piece type] is a bitboard representing all squares
     // attacked by a given color and piece type. Special "piece types" which
@@ -242,6 +244,9 @@ namespace {
     // a white knight on g5 and black's king is on g8, this white knight adds 2
     // to kingAttacksCount[WHITE].
     int kingAttacksCount[COLOR_NB];
+
+	// the mobility bitboards for each minor and major piece
+	Bitboard pieceMobility[COLOR_NB][4][10];
   };
 
 
@@ -301,11 +306,11 @@ namespace {
     Bitboard b, bb;
     Square s;
     Score score = SCORE_ZERO;
-    int mob;
-
+	int pieceIndex = 0;
+    
     attackedBy[Us][Pt] = 0;
 
-    while ((s = *pl++) != SQ_NONE)
+	while ((s = *pl++) != SQ_NONE)
     {
         // Find attacked squares, including x-ray attacks for bishops and rooks
         b = Pt == BISHOP ? attacks_bb<BISHOP>(s, pos.pieces() ^ pos.pieces(QUEEN))
@@ -326,12 +331,9 @@ namespace {
             kingAttacksCount[Us] += popcount(b & attackedBy[Them][KING]);
         }
 
-        mob = (Pt == KNIGHT || Pt == BISHOP) ? popcount(b & mobilityArea[Us] & ~pos.pieces(Us, QUEEN))
-                                             : popcount(b & mobilityArea[Us]);
-
-        mobility[Us] += MobilityBonus[Pt - 2][mob];
-
-        // Penalty if the piece is far from the king
+		pieceMobility[Us][Pt - 2][pieceIndex++] = b & mobilityArea[Us];
+		
+		// Penalty if the piece is far from the king
         score -= KingProtector[Pt - 2] * distance(s, pos.square<KING>(Us));
 
         if (Pt == BISHOP || Pt == KNIGHT)
@@ -376,6 +378,8 @@ namespace {
 
         if (Pt == ROOK)
         {
+			int mob = popcount(b & mobilityArea[Us]);
+
             // Bonus for aligning rook with enemy pawns on the same rank/file
             if (relative_rank(Us, s) >= RANK_5)
                 score += RookOnPawn * popcount(pos.pieces(Them, PAWN) & PseudoAttacks[ROOK][s]);
@@ -401,12 +405,36 @@ namespace {
                 score -= WeakQueen;
         }
     }
+
     if (T)
         Trace::add(Pt, Us, score);
 
     return score;
   }
 
+  template<Tracing T> template<Color Us, PieceType Pt>
+  void Evaluation<T>::piece_mobility() {
+	  Bitboard b;
+
+	  for (int index = 0; index < pos.count<Pt>(Us); ++index)
+	  {
+		  b = pieceMobility[Us][Pt - 2][index];
+
+		  if (Pt == KNIGHT || Pt == BISHOP)
+			  b &= ~pos.pieces(Us, QUEEN);
+
+		  mobilityScore[Us] += MobilityBonus[Pt - 2][popcount(b)];
+	  }
+  }
+
+  template<Tracing T> template<Color Us>
+  void Evaluation<T>::mobility() {
+
+	  piece_mobility<Us, KNIGHT>();
+	  piece_mobility<Us, BISHOP>();
+	  piece_mobility<Us, ROOK>();
+	  piece_mobility<Us, QUEEN>();	  
+  }
 
   // Evaluation::king() assigns bonuses and penalties to a king of a given color
   template<Tracing T> template<Color Us>
@@ -482,7 +510,7 @@ namespace {
         // Transform the kingDanger units into a Score, and subtract it from the evaluation
         if (kingDanger > 0)
         {
-            int mobilityDanger = mg_value(mobility[Them] - mobility[Us]);
+            int mobilityDanger = mg_value(mobilityScore[Them] - mobilityScore[Us]);
             kingDanger = std::max(0, kingDanger + mobilityDanger);
             score -= make_score(kingDanger * kingDanger / 4096, kingDanger / 16);
         }
@@ -869,12 +897,15 @@ namespace {
             + pieces<WHITE, ROOK  >() - pieces<BLACK, ROOK  >()
             + pieces<WHITE, QUEEN >() - pieces<BLACK, QUEEN >();
 
-    score += mobility[WHITE] - mobility[BLACK];
+	mobility<WHITE>();
+	mobility<BLACK>();
 
-    score +=  king<   WHITE>() - king<   BLACK>()
-            + threats<WHITE>() - threats<BLACK>()
-            + passed< WHITE>() - passed< BLACK>()
-            + space<  WHITE>() - space<  BLACK>();
+	score += mobilityScore[WHITE] - mobilityScore[BLACK];
+
+    score +=  king<    WHITE>() - king<    BLACK>()
+		    + threats< WHITE>() - threats< BLACK>()
+            + passed<  WHITE>() - passed<  BLACK>()
+            + space<   WHITE>() - space<   BLACK>();
 
     score += initiative(eg_value(score));
 
@@ -891,7 +922,7 @@ namespace {
         Trace::add(MATERIAL, pos.psq_score());
         Trace::add(IMBALANCE, me->imbalance());
         Trace::add(PAWN, pe->pawn_score(WHITE), pe->pawn_score(BLACK));
-        Trace::add(MOBILITY, mobility[WHITE], mobility[BLACK]);
+        Trace::add(MOBILITY, mobilityScore[WHITE], mobilityScore[BLACK]);
         Trace::add(TOTAL, score);
     }
 
