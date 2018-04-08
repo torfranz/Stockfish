@@ -101,23 +101,25 @@ namespace {
 
   // MobilityBonus[PieceType-2][attacked] contains bonuses for middle and end game,
   // indexed by piece type and number of attacked squares in the mobility area.
-  constexpr Score MobilityBonus[][32] = {
-    { S(-75,-76), S(-57,-54), S( -9,-28), S( -2,-10), S(  6,  5), S( 14, 12), // Knights
-      S( 22, 26), S( 29, 29), S( 36, 29) },
-    { S(-48,-59), S(-20,-23), S( 16, -3), S( 26, 13), S( 38, 24), S( 51, 42), // Bishops
-      S( 55, 54), S( 63, 57), S( 63, 65), S( 68, 73), S( 81, 78), S( 81, 86),
-      S( 91, 88), S( 98, 97) },
-    { S(-58,-76), S(-27,-18), S(-15, 28), S(-10, 55), S( -5, 69), S( -2, 82), // Rooks
-      S(  9,112), S( 16,118), S( 30,132), S( 29,142), S( 32,155), S( 38,165),
-      S( 46,166), S( 48,169), S( 58,171) },
-    { S(-39,-36), S(-21,-15), S(  3,  8), S(  3, 18), S( 14, 34), S( 22, 54), // Queens
-      S( 28, 61), S( 41, 73), S( 43, 79), S( 48, 92), S( 56, 94), S( 60,104),
-      S( 60,113), S( 66,120), S( 67,123), S( 70,126), S( 71,133), S( 73,136),
-      S( 79,140), S( 88,143), S( 88,148), S( 99,166), S(102,170), S(102,175),
-      S(106,184), S(109,191), S(113,206), S(116,212) }
-  };
+  //constexpr Score MobilityBonus[][32] = {
+  //  { S(-75,-76), S(-57,-54), S( -9,-28), S( -2,-10), S(  6,  5), S( 14, 12), // Knights
+  //    S( 22, 26), S( 29, 29), S( 36, 29) },
+  //  { S(-48,-59), S(-20,-23), S( 16, -3), S( 26, 13), S( 38, 24), S( 51, 42), // Bishops
+  //    S( 55, 54), S( 63, 57), S( 63, 65), S( 68, 73), S( 81, 78), S( 81, 86),
+  //    S( 91, 88), S( 98, 97) },
+  //  { S(-58,-76), S(-27,-18), S(-15, 28), S(-10, 55), S( -5, 69), S( -2, 82), // Rooks
+  //    S(  9,112), S( 16,118), S( 30,132), S( 29,142), S( 32,155), S( 38,165),
+  //    S( 46,166), S( 48,169), S( 58,171) },
+  //  { S(-39,-36), S(-21,-15), S(  3,  8), S(  3, 18), S( 14, 34), S( 22, 54), // Queens
+  //    S( 28, 61), S( 41, 73), S( 43, 79), S( 48, 92), S( 56, 94), S( 60,104),
+  //    S( 60,113), S( 66,120), S( 67,123), S( 70,126), S( 71,133), S( 73,136),
+  //    S( 79,140), S( 88,143), S( 88,148), S( 99,166), S(102,170), S(102,175),
+  //    S(106,184), S(109,191), S(113,206), S(116,212) }
+  //};
 
-  // Outpost[knight/bishop][supported by pawn] contains bonuses for minor
+  constexpr Score PieceMobilityBonus[]  = { S( 13, 13), S(  9, 11), S(  7, 16), S(  5,  8) };
+  constexpr Score PieceMobilityOffset[] = { S(-56,-60), S(-14,-27), S(-36,-11), S( -6,  3) };
+
   // pieces if they occupy or can reach an outpost square, bigger if that
   // square is supported by a pawn.
   constexpr Score Outpost[][2] = {
@@ -423,9 +425,9 @@ namespace {
               b &= ~pos.pieces(Us, QUEEN);
 
           // remove those squares from the mobility area where enemy is attacking and we don't defend enough
-          //b &= ~(attackedBy[Them][ALL_PIECES] & ~attackedBy2[Us]);
+          b &= ~(attackedBy[Them][ALL_PIECES] & ~attackedBy2[Us]);
 
-          mobilityScore[Us] += MobilityBonus[Pt - 2][popcount(b)];
+          mobilityScore[Us] += PieceMobilityOffset[Pt - 2] + (PieceMobilityBonus[Pt - 2] * popcount(b));
       }
   }
 
