@@ -112,6 +112,14 @@ namespace {
     e->pawnsOnSquares[Us][WHITE] = pos.count<PAWN>(Us) - e->pawnsOnSquares[Us][BLACK];
     e->splitPawns[Us] = 0;
 
+    // check if few pawns are split into both sides of the board
+    if (     pos.count<PAWN>(Us) > 1
+        &&   pos.count<PAWN>(Us) < 6
+        &&  (pos.pieces(Us, PAWN) & QueenSide)
+        &&  (pos.pieces(Us, PAWN) & KingSide)
+        && !(pos.pieces(Us, PAWN) & CenterFiles))
+            e->splitPawns[Us] = true;
+
     // Loop through all pawns of the current color and score each pawn
     while ((s = *pl++) != SQ_NONE)
     {
@@ -180,15 +188,7 @@ namespace {
 
         if (doubled && !supported)
             score -= Doubled;
-
-        // check if few pawns are split into both sides of the board
-        if (   pos.count<PAWN>(Us) > 1 
-            && pos.count<PAWN>(Us) < 6
-            && (pos.pieces(Us, PAWN) & QueenSide)
-            && (pos.pieces(Us, PAWN) & KingSide)
-            && !(pos.pieces(Us, PAWN) & CenterFiles)) 
-               e->splitPawns[Us] = true;
-    }
+   }
 
     return score;
   }
