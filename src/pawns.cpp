@@ -110,7 +110,7 @@ namespace {
     e->pawnAttacks[Us]   = pawn_attacks_bb<Us>(ourPawns);
     e->pawnsOnSquares[Us][BLACK] = popcount(ourPawns & DarkSquares);
     e->pawnsOnSquares[Us][WHITE] = pos.count<PAWN>(Us) - e->pawnsOnSquares[Us][BLACK];
-    e->splitPawns[Us] = 0;
+    e->splitPawns[Us] = false;
 
     // check if few pawns are split into both sides of the board
     if (    (pos.pieces(Us, PAWN) & QueenSide)
