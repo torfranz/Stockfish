@@ -364,9 +364,9 @@ namespace {
                 
                 // knight/pawn penalty if our only non-pawn piece is a knight.
                 if (   pos.non_pawn_material(Us) == KnightValueMg 
-                    && pe->split_pawns(Them)) {
+                    && pe->split_pawns(Us)) {
 
-                    // enemy has split pawns -> hard to defend with knight
+                    // we have split pawns -> hard to defend with knight
                     score -= KnightOnSplitPawns;
                 }
             }
