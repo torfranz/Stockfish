@@ -169,6 +169,7 @@ namespace {
   constexpr Score Hanging            = S( 52, 30);
   constexpr Score HinderPassedPawn   = S(  8,  1);
   constexpr Score KnightOnQueen      = S( 21, 11);
+  constexpr Score KnightPawnWidth    = S(  0,  2);
   constexpr Score LongDiagonalBishop = S( 22,  0);
   constexpr Score MinorBehindPawn    = S( 16,  0);
   constexpr Score Overload           = S( 10,  5);
@@ -357,6 +358,21 @@ namespace {
                 // Bonus for bishop on a long diagonal which can "see" both center squares
                 if (more_than_one(Center & (attacks_bb<BISHOP>(s, pos.pieces(PAWN)) | s)))
                     score += LongDiagonalBishop;
+            }
+
+            if (Pt == KNIGHT) {
+                
+                // knight/pawn penalty if our only non-pawn piece is a knight.
+                if (pos.non_pawn_material(Us) == KnightValueMg) {
+
+                    // enemy has pawns more than 5 files apart -> hard to defend
+                    if (pe->pawn_width(Them) > 4)
+                        score -= KnightPawnWidth * pe->pawn_width(Them);
+
+                    // Or pawns are more than 5 files apart -> hard to support
+                    if (pe->pawn_width(Us) > 4)
+                        score -= KnightPawnWidth * pe->pawn_width(Us);
+                }
             }
 
             // An important Chess960 pattern: A cornered bishop blocked by a friendly
