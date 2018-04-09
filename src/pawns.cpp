@@ -113,9 +113,7 @@ namespace {
     e->splitPawns[Us] = 0;
 
     // check if few pawns are split into both sides of the board
-    if (     pos.count<PAWN>(Us) > 1
-        &&   pos.count<PAWN>(Us) < 6
-        &&  (pos.pieces(Us, PAWN) & QueenSide)
+    if (    (pos.pieces(Us, PAWN) & QueenSide)
         &&  (pos.pieces(Us, PAWN) & KingSide)
         && !(pos.pieces(Us, PAWN) & CenterFiles))
             e->splitPawns[Us] = true;
