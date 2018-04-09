@@ -88,8 +88,11 @@ namespace {
   template<Color Us>
   Score evaluate(const Position& pos, Pawns::Entry* e) {
 
-    constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
-    constexpr Direction Up   = (Us == WHITE ? NORTH : SOUTH);
+    constexpr Color     Them        = (Us == WHITE ? BLACK : WHITE);
+    constexpr Direction Up          = (Us == WHITE ? NORTH : SOUTH);
+    constexpr Bitboard  QueenSide   = FileABB | FileBBB | FileCBB;
+    constexpr Bitboard  KingSide    = FileFBB | FileGBB | FileHBB;
+    constexpr Bitboard  CenterFiles = FileDBB | FileEBB;
 
     Bitboard b, neighbours, stoppers, doubled, supported, phalanx;
     Bitboard lever, leverPush;
@@ -107,7 +110,7 @@ namespace {
     e->pawnAttacks[Us]   = pawn_attacks_bb<Us>(ourPawns);
     e->pawnsOnSquares[Us][BLACK] = popcount(ourPawns & DarkSquares);
     e->pawnsOnSquares[Us][WHITE] = pos.count<PAWN>(Us) - e->pawnsOnSquares[Us][BLACK];
-    e->pawnWidth[Us] = 0;
+    e->splitPawns[Us] = 0;
 
     // Loop through all pawns of the current color and score each pawn
     while ((s = *pl++) != SQ_NONE)
@@ -178,10 +181,13 @@ namespace {
         if (doubled && !supported)
             score -= Doubled;
 
-        if (pos.count<PAWN>(Us) > 1) {
-            b = e->semiopenFiles[Us] ^ 0xFF;
-            e->pawnWidth[Us] = int(msb(b) - lsb(b));
-        }
+        // check if few pawns are split into both sides of the board
+        if (   pos.count<PAWN>(Us) > 1 
+            && pos.count<PAWN>(Us) < 6
+            && (pos.pieces(Us, PAWN) & QueenSide)
+            && (pos.pieces(Us, PAWN) & KingSide)
+            && !(pos.pieces(Us, PAWN) & CenterFiles)) 
+               e->splitPawns[Us] = true;
     }
 
     return score;

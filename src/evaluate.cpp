@@ -169,7 +169,7 @@ namespace {
   constexpr Score Hanging            = S( 52, 30);
   constexpr Score HinderPassedPawn   = S(  8,  1);
   constexpr Score KnightOnQueen      = S( 21, 11);
-  constexpr Score KnightPawnWidth    = S(  0,  2);
+  constexpr Score KnightOnSplitPawns = S(  0, 16);
   constexpr Score LongDiagonalBishop = S( 22,  0);
   constexpr Score MinorBehindPawn    = S( 16,  0);
   constexpr Score Overload           = S( 10,  5);
@@ -365,13 +365,9 @@ namespace {
                 // knight/pawn penalty if our only non-pawn piece is a knight.
                 if (pos.non_pawn_material(Us) == KnightValueMg) {
 
-                    // enemy has pawns more than 5 files apart -> hard to defend
-                    if (pe->pawn_width(Them) > 4)
-                        score -= KnightPawnWidth * pe->pawn_width(Them);
-
-                    // Or pawns are more than 5 files apart -> hard to support
-                    if (pe->pawn_width(Us) > 4)
-                        score -= KnightPawnWidth * pe->pawn_width(Us);
+                    // enemy has split pawns -> hard to defend with knight
+                    // and/or pawns are split -> hard to support
+                    score -= KnightOnSplitPawns * ((int)pe->split_pawns(Them) + (int)pe->split_pawns(Us));
                 }
             }
 
