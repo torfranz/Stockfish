@@ -92,7 +92,8 @@ namespace {
     constexpr Direction Up          = (Us == WHITE ? NORTH : SOUTH);
     constexpr Bitboard  QueenSide   = FileABB | FileBBB | FileCBB;
     constexpr Bitboard  KingSide    = FileFBB | FileGBB | FileHBB;
-    constexpr Bitboard  CenterFiles = FileDBB | FileEBB;
+    constexpr int       CenterLeft  = 0x1C; // files c-e
+    constexpr int       CenterRight = 0x38; // files d-f
 
     Bitboard b, neighbours, stoppers, doubled, supported, phalanx;
     Bitboard lever, leverPush;
@@ -110,14 +111,7 @@ namespace {
     e->pawnAttacks[Us]   = pawn_attacks_bb<Us>(ourPawns);
     e->pawnsOnSquares[Us][BLACK] = popcount(ourPawns & DarkSquares);
     e->pawnsOnSquares[Us][WHITE] = pos.count<PAWN>(Us) - e->pawnsOnSquares[Us][BLACK];
-    e->splitPawns[Us] = false;
-
-    // check if few pawns are split into both sides of the board
-    if (    (pos.pieces(Us, PAWN) & QueenSide)
-        &&  (pos.pieces(Us, PAWN) & KingSide)
-        && !(pos.pieces(Us, PAWN) & CenterFiles))
-            e->splitPawns[Us] = true;
-
+    
     // Loop through all pawns of the current color and score each pawn
     while ((s = *pl++) != SQ_NONE)
     {
@@ -187,6 +181,15 @@ namespace {
         if (doubled && !supported)
             score -= Doubled;
    }
+
+    // check if we have a pawn gap either in the c-e or d-f files area
+    // the idea is to scan for common pawn pattern with 3 pawns on one side and 2 on the other
+    bool noCenterPawns =   ((e->semiopenFiles[Us] & CenterLeft)  == CenterLeft) 
+                        || ((e->semiopenFiles[Us] & CenterRight) == CenterRight);
+
+    e->splitPawns[Us] =    noCenterPawns
+                        && (pos.pieces(Us, PAWN) & QueenSide)
+                        && (pos.pieces(Us, PAWN) & KingSide);
 
     return score;
   }
