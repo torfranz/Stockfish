@@ -173,6 +173,7 @@ namespace {
   constexpr Score MinorBehindPawn    = S( 16,  0);
   constexpr Score Overload           = S( 10,  5);
   constexpr Score PawnlessFlank      = S( 20, 80);
+  constexpr Score RookBeforePasser   = S(  5, 25);
   constexpr Score RookOnPawn         = S(  8, 24);
   constexpr Score SliderOnQueen      = S( 42, 21);
   constexpr Score ThreatByPawnPush   = S( 47, 26);
@@ -294,6 +295,7 @@ namespace {
   Score Evaluation<T>::pieces() {
 
     constexpr Color Them = (Us == WHITE ? BLACK : WHITE);
+    constexpr Direction Up = (Us == WHITE ? NORTH : SOUTH);
     constexpr Bitboard OutpostRanks = (Us == WHITE ? Rank4BB | Rank5BB | Rank6BB
                                                    : Rank5BB | Rank4BB | Rank3BB);
     const Square* pl = pos.squares<Pt>(Us);
@@ -379,6 +381,12 @@ namespace {
             // Bonus for aligning rook with enemy pawns on the same rank/file
             if (relative_rank(Us, s) >= RANK_5)
                 score += RookOnPawn * popcount(pos.pieces(Them, PAWN) & PseudoAttacks[ROOK][s]);
+
+            // penanlty if rook is in front of a passed pawn
+            if (pe->passed_pawns(Us)
+                & forward_file_bb(Them, s + Up)) {
+                score -= RookBeforePasser;
+            }
 
             // Bonus for rook on an open or semi-open file
             if (pe->semiopen_file(Us, file_of(s)))
