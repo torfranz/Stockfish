@@ -173,7 +173,7 @@ namespace {
   constexpr Score MinorBehindPawn    = S( 16,  0);
   constexpr Score Overload           = S( 10,  5);
   constexpr Score PawnlessFlank      = S( 20, 80);
-  constexpr Score RookBeforePasser   = S(  0, 10);
+  constexpr Score RookBehindPasser   = S(  0, 10);
   constexpr Score RookOnPawn         = S(  8, 24);
   constexpr Score SliderOnQueen      = S( 42, 21);
   constexpr Score ThreatByPawnPush   = S( 47, 26);
@@ -381,10 +381,11 @@ namespace {
             if (relative_rank(Us, s) >= RANK_5)
                 score += RookOnPawn * popcount(pos.pieces(Them, PAWN) & PseudoAttacks[ROOK][s]);
 
-            // penanlty if rook is in front of a passed pawn
+            // bonus if rook is behind a passed pawn and supporting it
             if (  pe->passed_pawns(Us)
-                & forward_file_bb(Them, s)) {
-                score -= RookBeforePasser;
+                & forward_file_bb(Us, s)
+                & b) {
+                score += RookBehindPasser;
             }
 
             // Bonus for rook on an open or semi-open file
