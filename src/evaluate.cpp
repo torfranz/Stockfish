@@ -295,8 +295,7 @@ namespace {
   Score Evaluation<T>::pieces() {
 
     constexpr Color Them = (Us == WHITE ? BLACK : WHITE);
-    constexpr Direction Up = (Us == WHITE ? NORTH : SOUTH);
-    constexpr Bitboard OutpostRanks = (Us == WHITE ? Rank4BB | Rank5BB | Rank6BB
+        constexpr Bitboard OutpostRanks = (Us == WHITE ? Rank4BB | Rank5BB | Rank6BB
                                                    : Rank5BB | Rank4BB | Rank3BB);
     const Square* pl = pos.squares<Pt>(Us);
 
@@ -383,8 +382,8 @@ namespace {
                 score += RookOnPawn * popcount(pos.pieces(Them, PAWN) & PseudoAttacks[ROOK][s]);
 
             // penanlty if rook is in front of a passed pawn
-            if (pe->passed_pawns(Us)
-                & forward_file_bb(Them, s + Up)) {
+            if (  pe->passed_pawns(Us)
+                & forward_file_bb(Them, s)) {
                 score -= RookBeforePasser;
             }
 
