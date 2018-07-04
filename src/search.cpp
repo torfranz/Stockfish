@@ -858,6 +858,9 @@ moves_loop: // When in check, search starts from here
       if (move == excludedMove)
           continue;
 
+      // Speculative prefetch as early as possible
+      prefetch(TT.first_entry(pos.key_after(move)));
+
       // At root obey the "searchmoves" option and skip moves not listed in Root
       // Move List. As a consequence any illegal move is also skipped. In MultiPV
       // mode we also skip PV moves which have been already searched and those
@@ -885,6 +888,19 @@ moves_loop: // When in check, search starts from here
 
       // Step 13. Extensions (~70 Elo)
 
+      /*
+      // 15226
+      dbg_hit_on(
+          depth >= 8 * ONE_PLY
+          &&  move == ttMove //81004
+          && !rootNode
+          &&  ttValue != VALUE_NONE //15226
+          && (tte->bound() & BOUND_LOWER) //22887
+          && tte->depth() >= depth - 3 * ONE_PLY //19205
+          &&  pos.legal(move) //15226
+      );
+      */
+     
       // Singular extension search (~60 Elo). If all moves but one fail low on a
       // search of (alpha-s, beta-s), and just one fails high on (alpha, beta),
       // then that move is singular and should be extended. To verify this we do
@@ -914,7 +930,7 @@ moves_loop: // When in check, search starts from here
 
       // Calculate new depth for this move
       newDepth = depth - ONE_PLY + extension;
-
+      
       // Step 14. Pruning at shallow depth (~170 Elo)
       if (  !rootNode
           && pos.non_pawn_material(us)
@@ -949,14 +965,12 @@ moves_loop: // When in check, search starts from here
               // Prune moves with negative SEE (~10 Elo)
               if (!pos.see_ge(move, Value(-29 * lmrDepth * lmrDepth)))
                   continue;
+
           }
           else if (   !extension // (~20 Elo)
                    && !pos.see_ge(move, -PawnValueEg * (depth / ONE_PLY)))
                   continue;
       }
-
-      // Speculative prefetch as early as possible
-      prefetch(TT.first_entry(pos.key_after(move)));
 
       // Check for legality just before making the move
       if (!rootNode && !pos.legal(move))
