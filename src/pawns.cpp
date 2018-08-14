@@ -34,7 +34,7 @@ namespace {
   // Pawn penalties
  constexpr Score Isolated = S( 5, 15);
  constexpr Score Backward = S( 9, 24);
- constexpr Score Doubled  = S(11, 56);
+ constexpr Score Doubled[2] = { S(6, 27), S(11, 56) };
 
   // Connected pawn bonus by opposed, phalanx, #support and rank
   Score Connected[2][2][3][RANK_NB];
@@ -71,10 +71,10 @@ namespace {
     constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
     constexpr Direction Up   = (Us == WHITE ? NORTH : SOUTH);
 
-    Bitboard b, neighbours, stoppers, doubled, supported, phalanx;
+    Bitboard b, neighbours, stoppers, blocked, supported, phalanx;
     Bitboard lever, leverPush;
     Square s;
-    bool opposed, backward;
+    bool opposed, backward, doubled;
     Score score = SCORE_ZERO;
     const Square* pl = pos.squares<PAWN>(Us);
 
@@ -103,7 +103,8 @@ namespace {
         stoppers   = theirPawns & passed_pawn_mask(Us, s);
         lever      = theirPawns & PawnAttacks[Us][s];
         leverPush  = theirPawns & PawnAttacks[Us][s + Up];
-        doubled    = ourPawns   & (s - Up);
+        doubled = more_than_one(ourPawns & file_bb(s));
+        blocked = pos.pieces(PAWN) & (s + Up);
         neighbours = ourPawns   & adjacent_files_bb(f);
         phalanx    = neighbours & rank_bb(s);
         supported  = neighbours & rank_bb(s - Up);
@@ -142,7 +143,7 @@ namespace {
             score -= Backward, e->weakUnopposed[Us] += !opposed;
 
         if (doubled && !supported)
-            score -= Doubled;
+            score -= Doubled[(bool)blocked];
     }
 
     return score;
