@@ -355,7 +355,7 @@ namespace {
                     score += LongDiagonalBishop;
 
                 // if low mobility is due to enemy pawns blocking the way give additional penalty
-                if (mob <= 4) {
+                if (mob <= 3) {
                    score -= make_score(10, 10) * popcount(attacks_bb<BISHOP>(s, pos.pieces()) & pos.pieces(Them, PAWN));
                 }
             }
