@@ -354,9 +354,13 @@ namespace {
                 if (more_than_one(Center & (attacks_bb<BISHOP>(s, pos.pieces(PAWN)) | s)))
                     score += LongDiagonalBishop;
 
-                // if low mobility is due to enemy pawns blocking the way give additional penalty
-                if (mob <= 3) {
-                   score -= make_score(10, 10) * popcount(attacks_bb<BISHOP>(s, pos.pieces()) & pos.pieces(Them, PAWN));
+                // if low mobility is due to defended (by another pawn) enemy pawns on the center files blocking the way give additional penalty
+                if (mob <= 4) {
+                    b =   attacks_bb<BISHOP>(s, pos.pieces()) 
+                        & pos.pieces(Them, PAWN) 
+                        & attackedBy[Them][PAWN]
+                        & CenterFiles;
+                    score -= make_score(10, 10) * popcount(b);
                 }
             }
 
