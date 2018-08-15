@@ -484,12 +484,8 @@ namespace {
                      -   30;
 
         // Transform the kingDanger units into a Score, and subtract it from the evaluation
-        if (kingDanger > 0)
-        {
-            int mobilityDanger = mg_value(mobility[Them] - mobility[Us]);
-            kingDanger = std::max(0, kingDanger + mobilityDanger);
-            score -= make_score(kingDanger * kingDanger / 4096, kingDanger / 16);
-        }
+        kingDanger += mg_value(mobility[Them] - mobility[Us]);
+        score -= make_score(kingDanger * kingDanger / 4096, std::abs(kingDanger) / 16) * ((kingDanger > 0) - (kingDanger < 0)); 
     }
 
     // Penalty when our king is on a pawnless flank
