@@ -248,7 +248,7 @@ namespace {
     constexpr Direction Up   = (Us == WHITE ? NORTH : SOUTH);
     constexpr Direction Down = (Us == WHITE ? SOUTH : NORTH);
     constexpr Bitboard LowRanks = (Us == WHITE ? Rank2BB | Rank3BB: Rank7BB | Rank6BB);
-
+    
     // Find our pawns that are blocked or on the first two ranks
     Bitboard b = pos.pieces(Us, PAWN) & (shift<Down>(pos.pieces()) | LowRanks);
 
@@ -328,9 +328,17 @@ namespace {
         {
             // Bonus if piece is on an outpost square or can reach one
             bb = OutpostRanks & ~pe->pawn_attacks_span(Them);
-            if (bb & s)
-                score += Outpost[Pt == BISHOP][bool(attackedBy[Us][PAWN] & s)] * 2;
+            if (bb & s) {
 
+                int multiplier = 2;
+                
+                // if square is defended by 2 pawns and no enemy pawn in front increase bonus
+                bb = shift<(Us == WHITE ? SOUTH_EAST : NORTH_EAST)>(SquareBB[s]) | shift<(Us == WHITE ? SOUTH_WEST : NORTH_WEST)>(SquareBB[s]);
+                if ((pos.pieces(Us, PAWN) & bb) == bb && !(forward_file_bb(Us, s) & pos.pieces(Them, PAWN)))
+                    multiplier += 1;
+                
+                score += Outpost[Pt == BISHOP][bool(attackedBy[Us][PAWN] & s)] * multiplier;
+            }
             else if (bb &= b & ~pos.pieces(Us))
                 score += Outpost[Pt == BISHOP][bool(attackedBy[Us][PAWN] & bb)];
 
