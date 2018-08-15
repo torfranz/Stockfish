@@ -248,7 +248,7 @@ namespace {
     constexpr Direction Up   = (Us == WHITE ? NORTH : SOUTH);
     constexpr Direction Down = (Us == WHITE ? SOUTH : NORTH);
     constexpr Bitboard LowRanks = (Us == WHITE ? Rank2BB | Rank3BB: Rank7BB | Rank6BB);
-    
+
     // Find our pawns that are blocked or on the first two ranks
     Bitboard b = pos.pieces(Us, PAWN) & (shift<Down>(pos.pieces()) | LowRanks);
 
@@ -328,17 +328,9 @@ namespace {
         {
             // Bonus if piece is on an outpost square or can reach one
             bb = OutpostRanks & ~pe->pawn_attacks_span(Them);
-            if (bb & s) {
+            if (bb & s)
+                score += Outpost[Pt == BISHOP][bool(attackedBy[Us][PAWN] & s)] * 2;
 
-                int multiplier = 2;
-                
-                // if square is defended by 2 pawns and no enemy pawn in front increase bonus
-                bb = shift<(Us == WHITE ? SOUTH_EAST : NORTH_EAST)>(SquareBB[s]) | shift<(Us == WHITE ? SOUTH_WEST : NORTH_WEST)>(SquareBB[s]);
-                if ((pos.pieces(Us, PAWN) & bb) == bb && !(forward_file_bb(Us, s) & pos.pieces(Them, PAWN)))
-                    multiplier += 1;
-                
-                score += Outpost[Pt == BISHOP][bool(attackedBy[Us][PAWN] & s)] * multiplier;
-            }
             else if (bb &= b & ~pos.pieces(Us))
                 score += Outpost[Pt == BISHOP][bool(attackedBy[Us][PAWN] & bb)];
 
@@ -385,8 +377,17 @@ namespace {
                 score += RookOnPawn * popcount(pos.pieces(Them, PAWN) & PseudoAttacks[ROOK][s]);
 
             // Bonus for rook on an open or semi-open file
-            if (pe->semiopen_file(Us, file_of(s)))
+            if (pe->semiopen_file(Us, file_of(s))) {
                 score += RookOnFile[bool(pe->semiopen_file(Them, file_of(s)))];
+
+                // additional bonus if on an open file and on a square defended by 2 pawns and no enemy pawn in front
+                if (   pe->semiopen_file(Them, file_of(s)) 
+                    && (OutpostRanks & ~pe->pawn_attacks_span(Them) & s)) {
+                        bb = shift<(Us == WHITE ? SOUTH_EAST : NORTH_EAST)>(SquareBB[s]) | shift<(Us == WHITE ? SOUTH_WEST : NORTH_WEST)>(SquareBB[s]);
+                        if ((pos.pieces(Us, PAWN) & bb) == bb && !(forward_file_bb(Us, s) & pos.pieces(Them, PAWN)))
+                            score += make_score(30, 15);
+                }
+            }
 
             // Penalty when trapped by the king, even more if the king cannot castle
             else if (mob <= 3)
