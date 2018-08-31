@@ -269,15 +269,13 @@ namespace {
         if (relative_rank(Us, pos.square<KING>(Us)) == RANK_1)
             kingRing[Us] |= shift<Up>(kingRing[Us]);
 
-        // for pawn attacks do not consider c/f file when king is on a/h file 
-        kingAttackersCount[Them] = popcount(kingRing[Us] & pe->pawn_attacks(Them));
-
         if (file_of(pos.square<KING>(Us)) == FILE_H)
             kingRing[Us] |= shift<WEST>(kingRing[Us]);
 
         else if (file_of(pos.square<KING>(Us)) == FILE_A)
             kingRing[Us] |= shift<EAST>(kingRing[Us]);
 
+        kingAttackersCount[Them] = popcount(kingRing[Us] & pe->pawn_attacks(Them));
         kingAttacksCount[Them] = kingAttackersWeight[Them] = 0;
     }
     else
@@ -369,6 +367,15 @@ namespace {
                     score -= !pos.empty(s + d + pawn_push(Us))                ? CorneredBishop * 4
                             : pos.piece_on(s + d + d) == make_piece(Us, PAWN) ? CorneredBishop * 2
                                                                               : CorneredBishop;
+            }
+        }
+
+        if (Pt == ROOK || Pt == QUEEN) {
+            if (  (  (attacks_bb<ROOK>(s, pos.pieces()) & kingRing[Them] & file_of(s))
+                   | (attacks_bb<ROOK>(s, pos.pieces()) & kingRing[Them] & rank_of(s)))
+                & (pos.pieces(Us, ROOK, QUEEN)))
+            {
+                score += make_score(50, 50);
             }
         }
 
