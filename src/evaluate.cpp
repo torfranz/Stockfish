@@ -375,7 +375,7 @@ namespace {
                    | (attacks_bb<ROOK>(s, pos.pieces()) & kingRing[Them] & RankBB[rank_of(s)]))
                 & (pos.pieces(Us, ROOK, QUEEN)))
             {
-                score += make_score(50, 50);
+                score += make_score(25, 25);
             }
         }
 
