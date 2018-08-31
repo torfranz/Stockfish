@@ -371,8 +371,8 @@ namespace {
         }
 
         if (Pt == ROOK || Pt == QUEEN) {
-            if (  (  (attacks_bb<ROOK>(s, pos.pieces()) & kingRing[Them] & file_of(s))
-                   | (attacks_bb<ROOK>(s, pos.pieces()) & kingRing[Them] & rank_of(s)))
+            if (  (  (attacks_bb<ROOK>(s, pos.pieces()) & kingRing[Them] & FileBB[file_of(s)])
+                   | (attacks_bb<ROOK>(s, pos.pieces()) & kingRing[Them] & RankBB[rank_of(s)]))
                 & (pos.pieces(Us, ROOK, QUEEN)))
             {
                 score += make_score(50, 50);
