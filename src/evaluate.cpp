@@ -269,13 +269,15 @@ namespace {
         if (relative_rank(Us, pos.square<KING>(Us)) == RANK_1)
             kingRing[Us] |= shift<Up>(kingRing[Us]);
 
+        // for pawn attacks do not consider c/f file when king is on a/h file 
+        kingAttackersCount[Them] = popcount(kingRing[Us] & pe->pawn_attacks(Them));
+
         if (file_of(pos.square<KING>(Us)) == FILE_H)
             kingRing[Us] |= shift<WEST>(kingRing[Us]);
 
         else if (file_of(pos.square<KING>(Us)) == FILE_A)
             kingRing[Us] |= shift<EAST>(kingRing[Us]);
 
-        kingAttackersCount[Them] = popcount(kingRing[Us] & pe->pawn_attacks(Them));
         kingAttacksCount[Them] = kingAttackersWeight[Them] = 0;
     }
     else
@@ -427,7 +429,7 @@ namespace {
     int tropism = popcount(b1) + popcount(b2);
 
     // Main king safety evaluation
-    if (kingAttackersCount[Them] > 1)
+    if (kingAttackersCount[Them] > 1 - pos.count<QUEEN>(Them))
     {
         int kingDanger = 0;
         unsafeChecks = 0;
