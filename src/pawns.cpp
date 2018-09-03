@@ -152,7 +152,7 @@ namespace {
     // give bonus based on file distance between passed pawns
     if (more_than_one(e->passedPawns[Us])) {
         int distance = 1 + mostRightPassed - mostLeftPassed;
-        score += make_score(0, 2 * distance * distance);
+        score += make_score(0, distance * distance);
     }
 
     return score;
