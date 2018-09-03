@@ -491,10 +491,12 @@ namespace {
             score -= make_score(kingDanger * kingDanger / 4096, kingDanger / 16);
         }
     }
-
     // Penalty when our king is on a pawnless flank
     if (!(pos.pieces(PAWN) & kingFlank))
         score -= PawnlessFlank;
+    // Endgame bonus when the opponent has a pawn majority on our kingflank and there are no major pieces as we may be able to defend.
+    else if (!pos.pieces(QUEEN, ROOK) && (popcount(pos.pieces(Us, PAWN) & kingFlank) < popcount(pos.pieces(Them, PAWN) & kingFlank)))
+        score += make_score(0,20);
 
     // King tropism bonus, to anticipate slow motion attacks on our king
     score -= CloseEnemies * tropism;
