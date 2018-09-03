@@ -370,6 +370,14 @@ namespace {
             }
         }
 
+        if (Pt == ROOK || Pt == QUEEN) {
+            if ((attacks_bb<ROOK>(s, pos.pieces()) & kingRing[Them] & (FileBB[file_of(s)] | RankBB[rank_of(s)]))
+                & (pos.pieces(Us, ROOK, QUEEN)))
+            {
+                score += make_score(30, 0);
+            }
+        }
+
         if (Pt == ROOK)
         {
             // Bonus for aligning rook with enemy pawns on the same rank/file
