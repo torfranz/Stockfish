@@ -74,6 +74,7 @@ namespace {
     Bitboard b, neighbours, stoppers, doubled, supported, phalanx;
     Bitboard lever, leverPush;
     Square s;
+    int mostLeftPassed = File::FILE_NB, mostRightPassed = -1;
     bool opposed, backward;
     Score score = SCORE_ZERO;
     const Square* pl = pos.squares<PAWN>(Us);
@@ -117,10 +118,13 @@ namespace {
         // full attack info to evaluate them. Include also not passed pawns
         // which could become passed after one or two pawn pushes when are
         // not attacked more times than defended.
-        if (   !(stoppers ^ lever ^ leverPush)
+        if (!(stoppers ^ lever ^ leverPush)
             && popcount(supported) >= popcount(lever) - 1
-            && popcount(phalanx)   >= popcount(leverPush))
+            && popcount(phalanx) >= popcount(leverPush)) {
             e->passedPawns[Us] |= s;
+            mostLeftPassed = std::min(mostLeftPassed, (int)f);
+            mostRightPassed = std::max(mostRightPassed, (int)f);
+        }
 
         else if (   stoppers == SquareBB[s + Up]
                  && relative_rank(Us, s) >= RANK_5)
@@ -143,6 +147,12 @@ namespace {
 
         if (doubled && !supported)
             score -= Doubled;
+    }
+
+    // give bonus based on file distance between passed pawns
+    if (more_than_one(e->passedPawns[Us])) {
+        int distance = 1 + mostRightPassed - mostLeftPassed;
+        score += make_score(0, 2 * distance * distance);
     }
 
     return score;
