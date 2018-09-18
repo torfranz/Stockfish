@@ -504,7 +504,7 @@ namespace {
     if (   relative_rank(Us, ksq) == RANK_1
         && !(pos.pieces(Us, PAWN) & (ksq + Up))
         && !(pos.pieces(Us, BISHOP) & (DarkSquares & (ksq + Up) ? DarkSquares : ~DarkSquares)))
-            score -= make_score(20, 0);
+            score -= make_score(10, 0);
     
     if (T)
         Trace::add(KING, Us, score);
