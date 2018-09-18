@@ -357,7 +357,9 @@ namespace {
 
                 // When king on first rank and bishop is between king and a pawn of us, consider him a good defender
                 if (   (relative_rank(Us, pos.square<KING>(Us)) == RANK_1)
-                    && ((pos.square<KING>(Us) + Up) == s)
+                    && mob > 3
+                    && file_of(pos.square<KING>(Us)) != FILE_E
+                    && (pos.square<KING>(Us) + Up) == s
                     && (pos.pieces(Us, PAWN) & (pos.square<KING>(Us) + Up + Up)))
                     score += make_score(10, 0);
             }
