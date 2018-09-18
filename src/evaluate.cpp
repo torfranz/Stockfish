@@ -411,6 +411,7 @@ namespace {
     constexpr Color    Them = (Us == WHITE ? BLACK : WHITE);
     constexpr Bitboard Camp = (Us == WHITE ? AllSquares ^ Rank6BB ^ Rank7BB ^ Rank8BB
                                            : AllSquares ^ Rank1BB ^ Rank2BB ^ Rank3BB);
+    constexpr Direction Up = (Us == WHITE ? NORTH : SOUTH);
 
     const Square ksq = pos.square<KING>(Us);
     Bitboard kingFlank, weak, b, b1, b2, safe, unsafeChecks;
@@ -499,6 +500,12 @@ namespace {
     // King tropism bonus, to anticipate slow motion attacks on our king
     score -= CloseEnemies * tropism;
 
+    // When king on first rank with no pawn directly in front give penalty if we don't have the bishop of that square
+    if (   relative_rank(Us, ksq) == RANK_1
+        && !(pos.pieces(Us, PAWN) & (ksq + Up))
+        && !(pos.pieces(Us, BISHOP) & (DarkSquares & (ksq + Up) ? DarkSquares : ~DarkSquares)))
+            score -= make_score(20, 0);
+    
     if (T)
         Trace::add(KING, Us, score);
 
