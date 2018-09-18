@@ -289,6 +289,7 @@ namespace {
 
     constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
     constexpr Direction Down = (Us == WHITE ? SOUTH : NORTH);
+    constexpr Direction Up   = (Us == WHITE ? NORTH : SOUTH);
     constexpr Bitboard OutpostRanks = (Us == WHITE ? Rank4BB | Rank5BB | Rank6BB
                                                    : Rank5BB | Rank4BB | Rank3BB);
     const Square* pl = pos.squares<Pt>(Us);
@@ -353,6 +354,12 @@ namespace {
                 // Bonus for bishop on a long diagonal which can "see" both center squares
                 if (more_than_one(attacks_bb<BISHOP>(s, pos.pieces(PAWN)) & Center))
                     score += LongDiagonalBishop;
+
+                // When king on first rank and bishop is between king and a pawn of us, consider him a good defender
+                if (   (relative_rank(Us, pos.square<KING>(Us)) == RANK_1)
+                    && ((pos.square<KING>(Us) + Up) == s)
+                    && (pos.pieces(Us, PAWN) & (pos.square<KING>(Us) + Up + Up)))
+                    score += make_score(20, 0);
             }
 
             // An important Chess960 pattern: A cornered bishop blocked by a friendly
@@ -411,8 +418,7 @@ namespace {
     constexpr Color    Them = (Us == WHITE ? BLACK : WHITE);
     constexpr Bitboard Camp = (Us == WHITE ? AllSquares ^ Rank6BB ^ Rank7BB ^ Rank8BB
                                            : AllSquares ^ Rank1BB ^ Rank2BB ^ Rank3BB);
-    constexpr Direction Up = (Us == WHITE ? NORTH : SOUTH);
-
+    
     const Square ksq = pos.square<KING>(Us);
     Bitboard kingFlank, weak, b, b1, b2, safe, unsafeChecks;
 
@@ -500,12 +506,6 @@ namespace {
     // King tropism bonus, to anticipate slow motion attacks on our king
     score -= CloseEnemies * tropism;
 
-    // When king on first rank with no pawn directly in front give penalty if we don't have the bishop of that square
-    if (   relative_rank(Us, ksq) == RANK_1
-        && !(pos.pieces(Us, PAWN) & (ksq + Up))
-        && !(pos.pieces(Us, BISHOP) & (DarkSquares & (ksq + Up) ? DarkSquares : ~DarkSquares)))
-            score -= make_score(20, 0);
-    
     if (T)
         Trace::add(KING, Us, score);
 
