@@ -502,9 +502,10 @@ namespace {
 
     // When king on first rank with no pawn directly in front give penalty if we don't have the bishop of that square
     if (   relative_rank(Us, ksq) == RANK_1
+        && (pos.pieces(Us, PAWN) & (pos.square<KING>(Us) + Up + Up))
         && !(pos.pieces(Us, PAWN) & (ksq + Up))
         && !(pos.pieces(Us, BISHOP) & (DarkSquares & (ksq + Up) ? DarkSquares : ~DarkSquares)))
-            score -= make_score(10, 0);
+            score -= make_score(20, 0);
     
     if (T)
         Trace::add(KING, Us, score);
