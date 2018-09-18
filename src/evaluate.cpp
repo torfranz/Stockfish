@@ -359,7 +359,7 @@ namespace {
                 if (   (relative_rank(Us, pos.square<KING>(Us)) == RANK_1)
                     && ((pos.square<KING>(Us) + Up) == s)
                     && (pos.pieces(Us, PAWN) & (pos.square<KING>(Us) + Up + Up)))
-                    score += make_score(20, 0);
+                    score += make_score(10, 0);
             }
 
             // An important Chess960 pattern: A cornered bishop blocked by a friendly
