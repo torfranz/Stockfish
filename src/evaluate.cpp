@@ -354,7 +354,7 @@ namespace {
                     score += LongDiagonalBishop;
 
                 // give bonus/malus for number of direction the bishop can move
-                score += make_score(2, 2) * (popcount(BishopAgilityDirections[s] & ~pos.pieces()) - 2);
+                score += make_score(4, 2) * (popcount(BishopAgilityDirections[s] & mobilityArea[Us]) - 2);
             }
 
             // An important Chess960 pattern: A cornered bishop blocked by a friendly
