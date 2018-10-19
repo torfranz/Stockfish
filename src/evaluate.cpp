@@ -352,9 +352,6 @@ namespace {
                 // Bonus for bishop on a long diagonal which can "see" both center squares
                 if (more_than_one(attacks_bb<BISHOP>(s, pos.pieces(PAWN)) & Center))
                     score += LongDiagonalBishop;
-
-                // give bonus/malus for number of direction the bishop can move
-                score += make_score(8, 0) * (popcount(BishopAgilityDirections[s] & ~pos.pieces()) - 2);
             }
 
             // An important Chess960 pattern: A cornered bishop blocked by a friendly
@@ -374,6 +371,9 @@ namespace {
 
         if (Pt == ROOK)
         {
+            // give bonus/malus for number of direction the rook can move
+            score += make_score(4, 0) * (popcount(RookAgilityDirections[s] & ~pos.pieces()) - 2);
+
             // Bonus for aligning rook with enemy pawns on the same rank/file
             if (relative_rank(Us, s) >= RANK_5)
                 score += RookOnPawn * popcount(pos.pieces(Them, PAWN) & PseudoAttacks[ROOK][s]);
