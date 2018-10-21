@@ -372,7 +372,7 @@ namespace {
         if (Pt == ROOK)
         {
             // give bonus/malus for number of direction the queen can move
-            score += make_score(10, 0) * (popcount(RookAgilityDirections[s] & b & mobilityArea[Us]) - 2);
+            score += make_score(2, 0) * (popcount(RookAgilityDirections[s] & b & mobilityArea[Us]) - 2);
 
             // Bonus for aligning rook with enemy pawns on the same rank/file
             if (relative_rank(Us, s) >= RANK_5)
@@ -394,7 +394,7 @@ namespace {
         if (Pt == QUEEN)
         {
             // give bonus/malus for number of direction the queen can move
-            score += make_score(5, 0) * (popcount(PseudoAttacks[KING][s] & b & mobilityArea[Us]) - 4);
+            score += make_score(2, 0) * (popcount(PseudoAttacks[KING][s] & b & mobilityArea[Us]) - 4);
 
             // Penalty if any relative pin or discovered attack against the queen
             Bitboard queenPinners;
