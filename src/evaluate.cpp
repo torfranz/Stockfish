@@ -371,9 +371,6 @@ namespace {
 
         if (Pt == ROOK)
         {
-            // give bonus/malus for number of direction the queen can move
-            score += make_score(2, 0) * (popcount(RookAgilityDirections[s] & b & mobilityArea[Us]) - 2);
-
             // Bonus for aligning rook with enemy pawns on the same rank/file
             if (relative_rank(Us, s) >= RANK_5)
                 score += RookOnPawn * popcount(pos.pieces(Them, PAWN) & PseudoAttacks[ROOK][s]);
