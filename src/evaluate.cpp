@@ -391,7 +391,7 @@ namespace {
         if (Pt == QUEEN)
         {
             // give bonus/malus for number of direction the queen can move
-            score += make_score(3, 0) * (popcount(PseudoAttacks[KING][s] & b & mobilityArea[Us]) - 4);
+            score += make_score(6, 0) * (popcount(PseudoAttacks[KING][s] & b & mobilityArea[Us]) - 4);
 
             // Penalty if any relative pin or discovered attack against the queen
             Bitboard queenPinners;
