@@ -86,24 +86,24 @@ namespace {
 
   constexpr Bitboard KingCamp[COLOR_NB][RANK_NB] = {
       {
-        Rank1BB | Rank2BB | Rank3BB,
         Rank1BB | Rank2BB | Rank3BB | Rank4BB,
-        Rank2BB | Rank3BB | Rank4BB | Rank5BB,
-        Rank3BB | Rank4BB | Rank5BB | Rank6BB,
-        Rank4BB | Rank5BB | Rank6BB,
-        Rank5BB | Rank6BB | Rank7BB,
-        Rank6BB | Rank7BB | Rank8BB,
+        Rank1BB | Rank2BB | Rank3BB | Rank4BB | Rank5BB,
+        Rank1BB | Rank2BB | Rank3BB | Rank4BB | Rank5BB,
+        Rank2BB | Rank3BB | Rank4BB | Rank5BB | Rank6BB,
+        Rank3BB | Rank4BB | Rank5BB | Rank6BB | Rank7BB,
+        Rank4BB | Rank5BB | Rank6BB | Rank7BB,
+        Rank5BB | Rank6BB | Rank7BB | Rank8BB,
         Rank6BB | Rank7BB | Rank8BB,
       },
       {
         Rank3BB | Rank2BB | Rank1BB,
-        Rank3BB | Rank2BB | Rank1BB,
-        Rank4BB | Rank3BB | Rank2BB,
-        Rank5BB | Rank4BB | Rank3BB,
-        Rank6BB | Rank5BB | Rank4BB | Rank3BB,
-        Rank7BB | Rank6BB | Rank5BB | Rank4BB,
+        Rank4BB | Rank3BB | Rank2BB | Rank1BB,
+        Rank5BB | Rank4BB | Rank3BB | Rank2BB,
+        Rank6BB | Rank5BB | Rank4BB | Rank3BB | Rank2BB,
+        Rank7BB | Rank6BB | Rank5BB | Rank4BB | Rank3BB,
+        Rank8BB | Rank7BB | Rank6BB | Rank5BB | Rank4BB,
+        Rank8BB | Rank7BB | Rank6BB | Rank5BB | Rank4BB,
         Rank8BB | Rank7BB | Rank6BB | Rank5BB,
-        Rank8BB | Rank7BB | Rank6BB,
       }
   };
 
