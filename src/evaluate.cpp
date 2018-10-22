@@ -77,11 +77,34 @@ namespace {
   constexpr Bitboard CenterFiles = FileCBB | FileDBB | FileEBB | FileFBB;
   constexpr Bitboard KingSide    = FileEBB | FileFBB | FileGBB | FileHBB;
   constexpr Bitboard Center      = (FileDBB | FileEBB) & (Rank4BB | Rank5BB);
-
+  
   constexpr Bitboard KingFlank[FILE_NB] = {
     QueenSide ^ FileDBB, QueenSide, QueenSide,
     CenterFiles, CenterFiles,
     KingSide, KingSide, KingSide ^ FileEBB
+  };
+
+  constexpr Bitboard KingCamp[COLOR_NB][RANK_NB] = {
+      {
+        Rank1BB | Rank2BB | Rank3BB | Rank4BB,
+        Rank1BB | Rank2BB | Rank3BB | Rank4BB | Rank5BB,
+        Rank2BB | Rank3BB | Rank4BB | Rank5BB,
+        Rank3BB | Rank4BB | Rank5BB | Rank6BB,
+        Rank4BB | Rank5BB | Rank6BB | Rank7BB,
+        Rank4BB | Rank5BB | Rank6BB | Rank7BB,
+        Rank5BB | Rank6BB | Rank7BB | Rank8BB,
+        Rank6BB | Rank7BB | Rank8BB,
+      },
+      {
+        Rank3BB | Rank2BB | Rank1BB,
+        Rank4BB | Rank3BB | Rank2BB | Rank1BB,
+        Rank5BB | Rank4BB | Rank3BB | Rank2BB,
+        Rank5BB | Rank4BB | Rank3BB | Rank2BB,
+        Rank6BB | Rank5BB | Rank4BB | Rank3BB,
+        Rank7BB | Rank6BB | Rank5BB | Rank4BB,
+        Rank8BB | Rank7BB | Rank6BB | Rank5BB | Rank4BB,
+        Rank8BB | Rank7BB | Rank6BB | Rank5BB,        
+      }
   };
 
   // Threshold for lazy and space evaluation
@@ -408,23 +431,22 @@ namespace {
   Score Evaluation<T>::king() const {
 
     constexpr Color    Them = (Us == WHITE ? BLACK : WHITE);
-    constexpr Bitboard Camp = (Us == WHITE ? AllSquares ^ Rank6BB ^ Rank7BB ^ Rank8BB
-                                           : AllSquares ^ Rank1BB ^ Rank2BB ^ Rank3BB);
-
+    
     const Square ksq = pos.square<KING>(Us);
-    Bitboard kingFlank, weak, b, b1, b2, safe, unsafeChecks;
+    Bitboard kingFlank, kingCamp, weak, b, b1, b2, safe, unsafeChecks;
 
     // King shelter and enemy pawns storm
     Score score = pe->king_safety<Us>(pos, ksq);
-
+    
     // Find the squares that opponent attacks in our king flank, and the squares
     // which are attacked twice in that flank but not defended by our pawns.
     kingFlank = KingFlank[file_of(ksq)];
-    b1 = attackedBy[Them][ALL_PIECES] & kingFlank & Camp;
+    kingCamp = KingCamp[Us][rank_of(ksq)];
+    b1 = attackedBy[Them][ALL_PIECES] & kingFlank & kingCamp;
     b2 = b1 & attackedBy2[Them] & ~attackedBy[Us][PAWN];
-
+    
     int tropism = popcount(b1) + popcount(b2);
-
+    
     // Main king safety evaluation
     if (kingAttackersCount[Them] > 1 - pos.count<QUEEN>(Them))
     {
