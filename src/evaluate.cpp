@@ -372,7 +372,7 @@ namespace {
         if (Pt == ROOK)
         {
             // give bonus/malus for number of direction the rook can move
-            score += make_score(3, 0) * popcount(RookAgilityDirections[s] & ~pos.pieces());
+            score += make_score(3, 0) * (popcount(RookAgilityDirections[s] & ~pos.pieces()) - 2);
 
             // Bonus for aligning rook with enemy pawns on the same rank/file
             if (relative_rank(Us, s) >= RANK_5)
