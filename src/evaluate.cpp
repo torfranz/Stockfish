@@ -84,27 +84,15 @@ namespace {
     KingSide, KingSide, KingSide ^ FileEBB
   };
 
-  constexpr Bitboard KingCamp[COLOR_NB][RANK_NB] = {
-      {
-        Rank1BB | Rank2BB | Rank3BB | Rank4BB,
-        Rank1BB | Rank2BB | Rank3BB | Rank4BB | Rank5BB,
-        Rank2BB | Rank3BB | Rank4BB | Rank5BB,
-        Rank3BB | Rank4BB | Rank5BB | Rank6BB,
-        Rank4BB | Rank5BB | Rank6BB | Rank7BB,
-        Rank4BB | Rank5BB | Rank6BB | Rank7BB,
-        Rank5BB | Rank6BB | Rank7BB | Rank8BB,
-        Rank6BB | Rank7BB | Rank8BB,
-      },
-      {
-        Rank3BB | Rank2BB | Rank1BB,
-        Rank4BB | Rank3BB | Rank2BB | Rank1BB,
-        Rank5BB | Rank4BB | Rank3BB | Rank2BB,
-        Rank5BB | Rank4BB | Rank3BB | Rank2BB,
-        Rank6BB | Rank5BB | Rank4BB | Rank3BB,
-        Rank7BB | Rank6BB | Rank5BB | Rank4BB,
-        Rank8BB | Rank7BB | Rank6BB | Rank5BB | Rank4BB,
-        Rank8BB | Rank7BB | Rank6BB | Rank5BB,        
-      }
+  constexpr Bitboard KingCamp[RANK_NB] = {
+      Rank1BB | Rank2BB | Rank3BB | Rank4BB | Rank5BB,
+      Rank1BB | Rank2BB | Rank3BB | Rank4BB | Rank5BB,
+      Rank1BB | Rank2BB | Rank3BB | Rank4BB | Rank5BB,
+      Rank2BB | Rank3BB | Rank4BB | Rank5BB | Rank6BB,
+      Rank3BB | Rank4BB | Rank5BB | Rank6BB | Rank7BB,
+      Rank4BB | Rank5BB | Rank6BB | Rank7BB | Rank8BB,
+      Rank4BB | Rank5BB | Rank6BB | Rank7BB | Rank8BB,
+      Rank4BB | Rank5BB | Rank6BB | Rank7BB | Rank8BB,
   };
 
   // Threshold for lazy and space evaluation
@@ -441,7 +429,7 @@ namespace {
     // Find the squares that opponent attacks in our king flank, and the squares
     // which are attacked twice in that flank but not defended by our pawns.
     kingFlank = KingFlank[file_of(ksq)];
-    kingCamp = KingCamp[Us][rank_of(ksq)];
+    kingCamp = KingCamp[rank_of(ksq)];
     b1 = attackedBy[Them][ALL_PIECES] & kingFlank & kingCamp;
     b2 = b1 & attackedBy2[Them] & ~attackedBy[Us][PAWN];
     
