@@ -727,7 +727,7 @@ namespace {
     int bonus = popcount(safe) + popcount(behind & safe);
     int weight = pos.count<ALL_PIECES>(Us);
 
-    Score score = make_score(bonus * weight * weight / 16, 0);
+    Score score = make_score(bonus * weight * weight / 22, 0);
     
     if (T)
         Trace::add(SPACE, Us, score);
