@@ -37,7 +37,7 @@ namespace {
 
     // After castling, the rook and king final positions are the same in Chess960
     // as they would be in standard chess.
-    Square kfrom = pos.square<KING>(Us);
+    Square kfrom = pos.square(KING, Us);
     Square rfrom = pos.castling_rook_square(Cr);
     Square kto = relative_square(Us, KingSide ? SQ_G1 : SQ_C1);
     Bitboard enemies = pos.pieces(Them);
@@ -126,7 +126,7 @@ namespace {
 
         if (Type == QUIET_CHECKS)
         {
-            Square ksq = pos.square<KING>(Them);
+            Square ksq = pos.square(KING, Them);
 
             b1 &= pos.attacks_from<PAWN>(ksq, Them);
             b2 &= pos.attacks_from<PAWN>(ksq, Them);
@@ -172,7 +172,7 @@ namespace {
         Bitboard b2 = shift<UpLeft >(pawnsOn7) & enemies;
         Bitboard b3 = shift<Up     >(pawnsOn7) & emptySquares;
 
-        Square ksq = pos.square<KING>(Them);
+        Square ksq = pos.square(KING, Them);
 
         while (b1)
             moveList = make_promotions<Type, UpRight>(moveList, pop_lsb(&b1), ksq);
@@ -231,7 +231,7 @@ namespace {
 
     assert(Pt != KING && Pt != PAWN);
 
-    const Square* pl = pos.squares<Pt>(us);
+    const Square* pl = pos.squares(Pt, us);
 
     for (Square from = *pl; from != SQ_NONE; from = *++pl)
     {
@@ -271,7 +271,7 @@ namespace {
 
     if (Type != QUIET_CHECKS && Type != EVASIONS)
     {
-        Square ksq = pos.square<KING>(Us);
+        Square ksq = pos.square(KING, Us);
         Bitboard b = pos.attacks_from<KING>(ksq) & target;
         while (b)
             *moveList++ = make_move(ksq, pop_lsb(&b));
@@ -349,7 +349,7 @@ ExtMove* generate<QUIET_CHECKS>(const Position& pos, ExtMove* moveList) {
      Bitboard b = pos.attacks_from(pt, from) & ~pos.pieces();
 
      if (pt == KING)
-         b &= ~PseudoAttacks[QUEEN][pos.square<KING>(~us)];
+         b &= ~PseudoAttacks[QUEEN][pos.square(KING, ~us)];
 
      while (b)
          *moveList++ = make_move(from, pop_lsb(&b));
@@ -368,7 +368,7 @@ ExtMove* generate<EVASIONS>(const Position& pos, ExtMove* moveList) {
   assert(pos.checkers());
 
   Color us = pos.side_to_move();
-  Square ksq = pos.square<KING>(us);
+  Square ksq = pos.square(KING, us);
   Bitboard sliderAttacks = 0;
   Bitboard sliders = pos.checkers() & ~pos.pieces(KNIGHT, PAWN);
 
@@ -405,7 +405,7 @@ ExtMove* generate<LEGAL>(const Position& pos, ExtMove* moveList) {
 
   Color us = pos.side_to_move();
   Bitboard pinned = pos.blockers_for_king(us) & pos.pieces(us);
-  Square ksq = pos.square<KING>(us);
+  Square ksq = pos.square(KING, us);
   ExtMove* cur = moveList;
 
   moveList = pos.checkers() ? generate<EVASIONS    >(pos, moveList)
