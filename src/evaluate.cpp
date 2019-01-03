@@ -171,7 +171,7 @@ namespace {
   constexpr Score TrappedRook        = S( 96,  4);
   constexpr Score WeakQueen          = S( 49, 15);
   constexpr Score WeakUnopposedPawn  = S( 12, 23);
-  constexpr Score KnightOnSplitPassedPawns = S(0, 32);
+  constexpr Score MinorOnSplitPassedPawns = S(0, 8);
 
 #undef S
 
@@ -362,15 +362,12 @@ namespace {
                                                                               : CorneredBishop;
             }
 
-            if (Pt == KNIGHT) {
+            // penalty if our only non-pawn piece is a knight or bishop.
+            if (pos.non_pawn_material(Us) <= BishopValueEg) {
 
-                // knight penalty if our only non-pawn piece is a knight.
-                if (pos.non_pawn_material(Us) == KnightValueMg) {
-
-                    // enemy has split passed pawns -> hard to defend with knight
-                    score -= KnightOnSplitPassedPawns * (int)pe->split_passed_pawns(Us);
-                }
-            }
+                // hard to defend/support with lone knight or bishop if split pawns have a certain distance
+                score -= MinorOnSplitPassedPawns * (std::max(0, pe->passed_pawn_distance(Us) - 2) + std::max(0, pe->passed_pawn_distance(Them) - 2));
+            }         
         }
 
         if (Pt == ROOK)

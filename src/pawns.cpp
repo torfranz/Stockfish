@@ -66,9 +66,7 @@ namespace {
 
     constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
     constexpr Direction Up   = (Us == WHITE ? NORTH : SOUTH);
-    constexpr Bitboard  QueenSide = FileABB | FileBBB | FileCBB;
-    constexpr Bitboard  KingSide = FileFBB | FileGBB | FileHBB;
-
+    
     Bitboard b, neighbours, stoppers, doubled, support, phalanx;
     Bitboard lever, leverPush;
     Square s;
@@ -85,7 +83,10 @@ namespace {
     e->pawnAttacks[Us]   = pawn_attacks_bb<Us>(ourPawns);
     e->pawnsOnSquares[Us][BLACK] = popcount(ourPawns & DarkSquares);
     e->pawnsOnSquares[Us][WHITE] = pos.count<PAWN>(Us) - e->pawnsOnSquares[Us][BLACK];
-    e->splitPassedPawns[Us] = false;
+    e->passedPawnDistance[Us] = 0;
+
+    File fmin = FILE_H;
+    File fmax = FILE_A;
 
     // Loop through all pawns of the current color and score each pawn
     while ((s = *pl++) != SQ_NONE)
@@ -116,18 +117,28 @@ namespace {
         // full attack info to evaluate them. Include also not passed pawns
         // which could become passed after one or two pawn pushes when are
         // not attacked more times than defended.
-        if (   !(stoppers ^ lever ^ leverPush)
+        if (!(stoppers ^ lever ^ leverPush)
             && popcount(support) >= popcount(lever) - 1
-            && popcount(phalanx) >= popcount(leverPush))
+            && popcount(phalanx) >= popcount(leverPush)) {
             e->passedPawns[Us] |= s;
+            if (f < fmin)
+                fmin = f;
+            if (f > fmax)
+                fmax = f;
+        }
 
         else if (   stoppers == SquareBB[s + Up]
                  && relative_rank(Us, s) >= RANK_5)
         {
             b = shift<Up>(support) & ~theirPawns;
             while (b)
-                if (!more_than_one(theirPawns & PawnAttacks[Us][pop_lsb(&b)]))
+                if (!more_than_one(theirPawns & PawnAttacks[Us][pop_lsb(&b)])) {
                     e->passedPawns[Us] |= s;
+                    if (f < fmin)
+                        fmin = f;
+                    if (f > fmax)
+                        fmax = f;
+                }
         }
 
         // Score this pawn
@@ -145,9 +156,8 @@ namespace {
     }
 
     // check if passed pawns are on both flanks
-    if (   (e->passedPawns[Us] & QueenSide)
-        && (e->passedPawns[Us] & KingSide))
-        e->splitPassedPawns[Us] = true;
+    if (more_than_one(e->passedPawns[Us]))
+        e->passedPawnDistance[Us] = fmax - fmin;
 
     return score;
   }
