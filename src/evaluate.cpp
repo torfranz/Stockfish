@@ -171,6 +171,7 @@ namespace {
   constexpr Score TrappedRook        = S( 96,  4);
   constexpr Score WeakQueen          = S( 49, 15);
   constexpr Score WeakUnopposedPawn  = S( 12, 23);
+  constexpr Score KnightOnSplitPassedPawns = S(0, 32);
 
 #undef S
 
@@ -359,6 +360,16 @@ namespace {
                     score -= !pos.empty(s + d + pawn_push(Us))                ? CorneredBishop * 4
                             : pos.piece_on(s + d + d) == make_piece(Us, PAWN) ? CorneredBishop * 2
                                                                               : CorneredBishop;
+            }
+
+            if (Pt == KNIGHT) {
+
+                // knight penalty if our only non-pawn piece is a knight.
+                if (pos.non_pawn_material(Us) == KnightValueMg) {
+
+                    // enemy has split passed pawns -> hard to defend with knight
+                    score -= KnightOnSplitPassedPawns * (int)pe->split_passed_pawns(Us);
+                }
             }
         }
 

@@ -66,6 +66,8 @@ namespace {
 
     constexpr Color     Them = (Us == WHITE ? BLACK : WHITE);
     constexpr Direction Up   = (Us == WHITE ? NORTH : SOUTH);
+    constexpr Bitboard  QueenSide = FileABB | FileBBB | FileCBB;
+    constexpr Bitboard  KingSide = FileFBB | FileGBB | FileHBB;
 
     Bitboard b, neighbours, stoppers, doubled, support, phalanx;
     Bitboard lever, leverPush;
@@ -83,6 +85,7 @@ namespace {
     e->pawnAttacks[Us]   = pawn_attacks_bb<Us>(ourPawns);
     e->pawnsOnSquares[Us][BLACK] = popcount(ourPawns & DarkSquares);
     e->pawnsOnSquares[Us][WHITE] = pos.count<PAWN>(Us) - e->pawnsOnSquares[Us][BLACK];
+    e->splitPassedPawns[Us] = false;
 
     // Loop through all pawns of the current color and score each pawn
     while ((s = *pl++) != SQ_NONE)
@@ -140,6 +143,11 @@ namespace {
         if (doubled && !support)
             score -= Doubled;
     }
+
+    // check if passed pawns are on both flanks
+    if (   (e->passedPawns[Us] & QueenSide)
+        && (e->passedPawns[Us] & KingSide))
+        e->splitPassedPawns[Us] = true;
 
     return score;
   }
