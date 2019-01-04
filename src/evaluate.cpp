@@ -23,6 +23,7 @@
 #include <cstring>   // For std::memset
 #include <iomanip>
 #include <sstream>
+#include <iostream>
 
 #include "bitboard.h"
 #include "evaluate.h"
@@ -315,6 +316,13 @@ namespace {
         int mob = popcount(b & mobilityArea[Us]);
 
         mobility[Us] += MobilityBonus[Pt - 2][mob];
+
+        if (Pt == KNIGHT)
+        {
+            // score a fork 
+            if (more_than_one(pos.pieces(Them) ^ pos.pieces(Them, PAWN, KNIGHT) & b))
+                score += make_score(16, 16);
+        }
 
         if (Pt == BISHOP || Pt == KNIGHT)
         {
