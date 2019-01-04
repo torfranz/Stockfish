@@ -314,6 +314,7 @@ namespace {
 
         int mob = popcount(b & mobilityArea[Us]);
 
+        // give additional penalty if a piece is trapped in the corner
         if (    mob == 0 
             && (s == relative_square(Us, SQ_A1) || s == relative_square(Us, SQ_H1)))
             score -= make_score(50, 50);
