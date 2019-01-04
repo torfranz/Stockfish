@@ -313,9 +313,10 @@ namespace {
         }
 
         int mob = popcount(b & mobilityArea[Us]);
+
         if (    mob == 0 
             && (s == relative_square(Us, SQ_A1) || s == relative_square(Us, SQ_H1)))
-            score -= make_score(100, 100);
+            score -= make_score(50, 50);
 
         mobility[Us] += MobilityBonus[Pt - 2][mob];
 
