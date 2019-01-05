@@ -23,6 +23,7 @@
 #include <cmath>
 #include <cstring>   // For std::memset
 #include <iostream>
+#include <fstream>
 #include <sstream>
 
 #include "evaluate.h"
@@ -188,6 +189,12 @@ void Search::clear() {
   TT.clear();
   Threads.clear();
   Tablebases::init(Options["SyzygyPath"]); // Free up mapped files
+
+  {
+      std::ofstream myfile;
+      myfile.open("dbg.txt", std::ios::out | std::ios::app);
+      dbg_print(myfile);
+  }
 }
 
 
@@ -779,8 +786,7 @@ namespace {
         &&  eval < VALUE_KNOWN_WIN) // Do not return unproven wins
         return eval;
 
-    // Step 9. Null move search with verification search (~40 Elo)
-    if (   !PvNode
+   if (   !PvNode
         && (ss-1)->currentMove != MOVE_NULL
         && (ss-1)->statScore < 23200
         &&  eval >= beta

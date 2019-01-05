@@ -145,23 +145,27 @@ const string engine_info(bool to_uci) {
 
 
 /// Debug functions used mainly to collect run-time statistics
-static int64_t hits[2], means[2];
+const int maxIdx = 20;
+static int64_t totalHits[maxIdx], hits[maxIdx], totalMeans[maxIdx], means[maxIdx];
 
-void dbg_hit_on(bool b) { ++hits[0]; if (b) ++hits[1]; }
-void dbg_hit_on(bool c, bool b) { if (c) dbg_hit_on(b); }
-void dbg_mean_of(int v) { ++means[0]; means[1] += v; }
+void dbg_hit_on(int idx, bool b) { ++totalHits[idx]; if (b) ++hits[idx]; }
+void dbg_hit_on(int idx, bool c, bool b) { if (c) dbg_hit_on(idx, b); }
+void dbg_mean_of(int idx, int v) { ++totalMeans[idx]; means[idx] += v; }
 
-void dbg_print() {
+void dbg_print(std::ostream& stream) {
 
-  if (hits[0])
-      cerr << "Total " << hits[0] << " Hits " << hits[1]
-           << " hit rate (%) " << 100 * hits[1] / hits[0] << endl;
+    for (size_t i = 0; i < maxIdx; i++)
+    {
+        if (hits[i])
+            stream << i << ": Total " << totalHits[i] << " Hits " << hits[i]
+            << " hit rate (%) " << 100.0 * (double)hits[i] / totalHits[i] << endl;
 
-  if (means[0])
-      cerr << "Total " << means[0] << " Mean "
-           << (double)means[1] / means[0] << endl;
+        if (means[i])
+            stream << i << ": Total " << totalMeans[i] << " Mean "
+            << (double)means[i] / totalMeans[i] << endl;
+    }
+ 
 }
-
 
 /// Used to serialize access to std::cout to avoid multiple threads writing at
 /// the same time.
