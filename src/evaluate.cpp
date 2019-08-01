@@ -325,6 +325,13 @@ namespace {
                     score += LongDiagonalBishop;
             }
 
+            // https://groups.google.com/d/msg/fishcooking/Tb_i80idds0/xmBc1wYYCQAJ
+            if (Pt == KNIGHT)
+            {
+                if (PseudoAttacks[ROOK][s] & PseudoAttacks[KING][s] & pos.pieces(Us, KNIGHT))
+                    score -= make_score(10, 0);
+            }
+
             // An important Chess960 pattern: A cornered bishop blocked by a friendly
             // pawn diagonally in front of it is a very serious problem, especially
             // when that pawn is also blocked.
