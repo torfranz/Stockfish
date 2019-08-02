@@ -124,12 +124,12 @@ namespace {
 
   // RookOnOpenFile[OpenFilesCount] contains a bonus for rooks when on an open file, bonus is dependent on the total number of open files
   constexpr Score RookOnOpenFile[FILE_NB + 1] = {
-    S(0, 0), S(80, 40), S(40, 20), S(20, 10), S(10, 5), S(2, 1), S(0, 0), S(0, 0),  S(0, 0)
+    S(0, 0), S(60, 25), S(40, 20), S(20, 10), S(10, 5), S(2, 1), S(0, 0), S(0, 0),  S(0, 0)
   };
 
   // RookOnSemiOpenFile[OpenFilesCount] contains a bonus for rooks when on an semi open file, bonus is dependent on the total number of open files
   constexpr Score RookOnSemiOpenFile[FILE_NB + 1] = {
-    S(60, 30), S(30, 15), S(15, 8), S(5, 0), S(0, 0), S(0, 0), S(0, 0), S(0, 0), S(0, 0)
+    S(40, 20), S(20, 10), S(15, 8), S(5, 0), S(0, 0), S(0, 0), S(0, 0), S(0, 0), S(0, 0)
   };
 
 
