@@ -174,6 +174,10 @@ Entry* probe(const Position& pos) {
   e->scores[WHITE] = evaluate<WHITE>(pos, e);
   e->scores[BLACK] = evaluate<BLACK>(pos, e);
 
+  Bitboard attackedPawns = pos.pieces(WHITE, PAWN) & (shift<SOUTH_EAST>(pos.pieces(BLACK, PAWN)) | shift<SOUTH_WEST>(pos.pieces(BLACK, PAWN)));
+  Bitboard blockedPawns = pos.pieces(WHITE, PAWN) & shift<SOUTH>(pos.pieces(BLACK, PAWN));
+  e->blockedCount = popcount(blockedPawns & ~attackedPawns);
+
   return e;
 }
 
