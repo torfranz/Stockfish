@@ -177,7 +177,7 @@ Entry* probe(const Position& pos) {
   e->scores[WHITE] = evaluate<WHITE>(pos, e);
   e->scores[BLACK] = evaluate<BLACK>(pos, e);
 
-  e->openfiles = e->semiopenfiles[WHITE] | e->semiopenfiles[BLACK];
+  e->openfiles = e->semiopenfiles[WHITE] & e->semiopenfiles[BLACK];
   e->openfilesCount = popcount(e->openfiles & Rank1BB);
   
   return e;
