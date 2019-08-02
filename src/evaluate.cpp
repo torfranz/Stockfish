@@ -105,11 +105,7 @@ namespace {
       S( 79,140), S( 88,143), S( 88,148), S( 99,166), S(102,170), S(102,175),
       S(106,184), S(109,191), S(113,206), S(116,212) }
   };
-
-  // RookOnFile[semiopen/open] contains bonuses for each rook when there is
-  // no (friendly) pawn on the rook file.
-  constexpr Score RookOnFile[] = { S(18, 7), S(44, 20) };
-
+  
   // ThreatByMinor/ByRook[attacked PieceType] contains bonuses according to
   // which piece type attacks which one. Attacks on lesser pieces which are
   // pawn-defended are not considered.
@@ -125,6 +121,17 @@ namespace {
   constexpr Score PassedRank[RANK_NB] = {
     S(0, 0), S(10, 28), S(17, 33), S(15, 41), S(62, 72), S(168, 177), S(276, 260)
   };
+
+  // RookOnOpenFile[OpenFilesCount] contains a bonus for rooks when on an open file, bonus is dependent on the total number of open files
+  constexpr Score RookOnOpenFile[FILE_NB + 1] = {
+    S(0, 0), S(80, 40), S(40, 20), S(20, 10), S(10, 5), S(2, 1), S(0, 0), S(0, 0),  S(0, 0)
+  };
+
+  // RookOnSemiOpenFile[OpenFilesCount] contains a bonus for rooks when on an semi open file, bonus is dependent on the total number of open files
+  constexpr Score RookOnSemiOpenFile[FILE_NB + 1] = {
+    S(60, 30), S(30, 15), S(15, 8), S(5, 0), S(0, 0), S(0, 0), S(0, 0), S(0, 0), S(0, 0)
+  };
+
 
   // Assorted bonuses and penalties
   constexpr Score BishopPawns        = S(  3,  7);
@@ -347,9 +354,13 @@ namespace {
                 score += RookOnPawn * popcount(pos.pieces(Them, PAWN) & PseudoAttacks[ROOK][s]);
 
             // Bonus for rook on an open or semi-open file
-            if (pos.is_on_semiopen_file(Us, s))
-                score += RookOnFile[bool(pos.is_on_semiopen_file(Them, s))];
-
+            if (pe->open_files() & s) {
+                score += RookOnOpenFile[pe->open_files_count()];
+            }
+            else if (pe->semi_open_files(Us) & s) {
+                score += RookOnSemiOpenFile[pe->open_files_count()];
+            }
+            
             // Penalty when trapped by the king, even more if the king cannot castle
             else if (mob <= 3)
             {
@@ -580,6 +591,8 @@ namespace {
         score += SliderOnQueen * popcount(b & safe & attackedBy2[Us]);
     }
 
+    // open files
+    
     if (T)
         Trace::add(THREAT, Us, score);
 

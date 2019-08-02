@@ -264,10 +264,6 @@ inline Square Position::ep_square() const {
   return st->epSquare;
 }
 
-inline bool Position::is_on_semiopen_file(Color c, Square s) const {
-  return !(pieces(c, PAWN) & file_bb(s));
-}
-
 inline bool Position::can_castle(CastlingRight cr) const {
   return st->castlingRights & cr;
 }

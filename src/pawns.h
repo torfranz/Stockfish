@@ -37,7 +37,10 @@ struct Entry {
   Bitboard pawn_attacks(Color c) const { return pawnAttacks[c]; }
   Bitboard passed_pawns(Color c) const { return passedPawns[c]; }
   Bitboard pawn_attacks_span(Color c) const { return pawnAttacksSpan[c]; }
-  int passed_count() const { return popcount(passedPawns[WHITE] | passedPawns[BLACK]); }
+  Bitboard semi_open_files(Color c) const { return semiopenfiles[c]; }
+  Bitboard open_files() const { return openfiles; }
+  int      open_files_count() const { return openfilesCount; }
+  int      passed_count() const { return popcount(passedPawns[WHITE] | passedPawns[BLACK]); }
 
   template<Color Us>
   Score king_safety(const Position& pos) {
@@ -53,6 +56,9 @@ struct Entry {
 
   Key key;
   Score scores[COLOR_NB];
+  Bitboard semiopenfiles[COLOR_NB];
+  Bitboard openfiles;
+  int      openfilesCount;
   Bitboard passedPawns[COLOR_NB];
   Bitboard pawnAttacks[COLOR_NB];
   Bitboard pawnAttacksSpan[COLOR_NB];

@@ -82,14 +82,17 @@ namespace {
 
     Bitboard doubleAttackThem = pawn_double_attacks_bb<Them>(theirPawns);
 
-    e->passedPawns[Us] = e->pawnAttacksSpan[Us] = 0;
-    e->kingSquares[Us] = SQ_NONE;
-    e->pawnAttacks[Us] = pawn_attacks_bb<Us>(ourPawns);
-
+    e->passedPawns[Us]   = e->pawnAttacksSpan[Us] = 0;
+    e->kingSquares[Us]   = SQ_NONE;
+    e->pawnAttacks[Us]   = pawn_attacks_bb<Us>(ourPawns);
+    e->semiopenfiles[Us] = AllSquares;
+    
     // Loop through all pawns of the current color and score each pawn
     while ((s = *pl++) != SQ_NONE)
     {
         assert(pos.piece_on(s) == make_piece(Us, PAWN));
+
+        e->semiopenfiles[Us] &= ~file_bb(s);
 
         Rank r = relative_rank(Us, s);
 
@@ -145,7 +148,7 @@ namespace {
             score -= Doubled;
     }
 
-    // Penalize our unsupported pawns attacked twice by enemy pawns
+        // Penalize our unsupported pawns attacked twice by enemy pawns
     score -= WeakLever * popcount(  ourPawns
                                   & doubleAttackThem
                                   & ~e->pawnAttacks[Us]);
@@ -174,6 +177,9 @@ Entry* probe(const Position& pos) {
   e->scores[WHITE] = evaluate<WHITE>(pos, e);
   e->scores[BLACK] = evaluate<BLACK>(pos, e);
 
+  e->openfiles = e->semiopenfiles[WHITE] | e->semiopenfiles[BLACK];
+  e->openfilesCount = popcount(e->openfiles & Rank1BB);
+  
   return e;
 }
 
