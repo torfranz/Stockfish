@@ -126,6 +126,9 @@ namespace {
         if (passed)
             e->passedPawns[Us] |= s;
 
+        if ((theirPawns & (s + Up)) && !(pawn_attacks_bb<Them>(theirPawns) & s))
+           score += make_score(2, 1) * (2 * r - 7);
+
         // Score this pawn
         if (support | phalanx)
         {
