@@ -127,9 +127,10 @@ namespace {
             e->passedPawns[Us] |= s;
 
         if ((theirPawns & (s + Up)) && !(pawn_attacks_bb<Them>(theirPawns) & s))
-           score += make_score(2, 0) * (4 * r - 14);
+           score += make_score(1, 2) * (2 * r - 7);
 
-        // Score this pawn
+        // Score this pawnbench
+
         if (support | phalanx)
         {
             int v =  Connected[r] * (phalanx ? 3 : 2) / (opposed ? 2 : 1)
